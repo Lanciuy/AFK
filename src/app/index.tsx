@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { styles } from "@/styles/alarm.styles";
+import { styles } from "./styles"; // Menerapkan External Style
 
 // 1. Menerapkan Type & Interface
 export type AlarmLabel = "Kerja" | "Kuliah" | "Olahraga" | "Bangun Pagi";
