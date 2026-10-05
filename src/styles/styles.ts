@@ -1,64 +1,52 @@
 import { StyleSheet } from "react-native";
 
 /**
- * Stylesheet for The Clock alarm application matching the reference layout.
- * Designed with a clean purple theme, tab navigation, spacious alarm cards,
- * and a floating action button (FAB).
+ * External stylesheet for the Alarm application.
+ *
+ * WHY:
+ * Centralizes layout rules, typography, and visual tokens for the Alarm feature.
+ * Removes non-alarm navigation tab styling and introduces structured styling
+ * for alarm status badges and empty states.
+ * Includes a null default export to ensure Expo Router file-based routing
+ * treats this helper gracefully without runtime route errors.
  */
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#4a154b", // Deep plum/purple header background from mockup
+    backgroundColor: "#4a154b", // Deep plum/purple background for header
   },
   headerContainer: {
     backgroundColor: "#4a154b",
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 16,
+    paddingBottom: 24,
   },
   headerTopRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 16,
+  },
+  headerTitleGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "700",
     color: "#ffffff",
     letterSpacing: 0.5,
   },
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-  headerIconButton: {
-    padding: 4,
-  },
-  tabsRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-  },
-  tabItem: {
-    alignItems: "center",
-    paddingVertical: 6,
+  activeBadge: {
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
     paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 16,
   },
-  tabItemActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.18)",
-  },
-  tabLabel: {
-    fontSize: 12,
-    color: "rgba(255, 255, 255, 0.7)",
-    marginTop: 4,
-    fontWeight: "500",
-  },
-  tabLabelActive: {
+  activeBadgeText: {
     color: "#ffffff",
-    fontWeight: "700",
+    fontSize: 13,
+    fontWeight: "600",
   },
   contentContainer: {
     flex: 1,
@@ -69,7 +57,7 @@ export const styles = StyleSheet.create({
     paddingTop: 20,
   },
   listContent: {
-    paddingBottom: 100, // Space for the floating action button
+    paddingBottom: 100, // Bottom clearance for Floating Action Button
   },
   alarmCard: {
     flexDirection: "row",
@@ -129,9 +117,26 @@ export const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: "500",
   },
-  moreButton: {
+  deleteButton: {
     padding: 8,
     marginLeft: 4,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#718096",
+    fontWeight: "600",
+    marginTop: 12,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: "#a0aec0",
+    marginTop: 4,
   },
   fabButton: {
     position: "absolute",
@@ -140,7 +145,7 @@ export const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#e53e3e", // Coral-red FAB button from reference mockup
+    backgroundColor: "#e53e3e", // Coral-red FAB button
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#e53e3e",
@@ -150,7 +155,3 @@ export const styles = StyleSheet.create({
     elevation: 6,
   },
 });
-
-export default function StylesRoute() {
-  return null;
-}
