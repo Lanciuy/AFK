@@ -209,6 +209,12 @@ export const styles = StyleSheet.create({
     marginHorizontal: 8,
     marginBottom: 16,
   },
+  scheduleContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 16,
+  },
   scheduleOption: {
     alignSelf: "flex-start",
     backgroundColor: "#fff5f5",
@@ -217,12 +223,18 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 9,
-    marginBottom: 8,
+  },
+  scheduleOptionInactive: {
+    backgroundColor: "#f7f8fa",
+    borderColor: "#e2e8f0",
   },
   scheduleOptionText: {
     color: "#e53e3e",
     fontSize: 14,
     fontWeight: "600",
+  },
+  scheduleOptionTextInactive: {
+    color: "#718096",
   },
   ringtoneSelector: {
     flexDirection: "row",
@@ -308,7 +320,7 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
   },
   saveButton: {
-    backgroundColor: "#e53e3e",
+    backgroundColor: "rgb(68, 229, 62)",
   },
   saveButtonText: {
     color: "#ffffff",

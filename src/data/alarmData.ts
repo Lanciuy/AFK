@@ -1,5 +1,11 @@
-import type { AlarmItem } from "../types/alarm";
+/**
+ * @file src/data/alarmData.ts
+ * Inisialisasi data awal dan opsi alarm.
+ */
 
+import type { AlarmItem, ScheduleOption } from "@/types/alarm";
+
+// Inisialisasi array of objects untuk data awal alarm
 export const INITIAL_ALARMS: AlarmItem[] = [
   {
     id: "1",
@@ -47,11 +53,18 @@ export const INITIAL_ALARMS: AlarmItem[] = [
   },
 ];
 
-export const RINGTONES = [
+export const RINGTONES: readonly string[] = [
   "Default",
   "Alarm Classic",
   "Digital",
   "Morning",
   "Gentle",
   "Beep",
+];
+
+export const SCHEDULE_OPTIONS: readonly ScheduleOption[] = [
+  "Weekdays",
+  "Daily",
+  "Saturdays",
+  "Tomorrow",
 ];
