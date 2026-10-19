@@ -1,10 +1,23 @@
-export type AlarmLabel = string;
+/**
+ * @file src/types/alarm.ts
+ * Definisi type dan interface object untuk modul alarm.
+ */
 
+// Deklarasi type
+export type AlarmLabel = string;
+export type ScheduleOption =
+  | "Weekdays"
+  | "Saturday"
+  | "Daily"
+  | "Tomorrow"
+  | string;
+
+// Interface object alarm
 export interface AlarmItem {
   readonly id: string;
   time: string;
   label: AlarmLabel;
-  schedule: string;
+  schedule: ScheduleOption;
   ringtone: string;
   snoozeEnabled: boolean;
   snoozeInterval: number;

@@ -1,9 +1,15 @@
+/**
+ * @file src/components/AlarmCard.tsx
+ * Komponen kartu alarm dengan interaksi toggle, edit, dan delete.
+ */
+
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { AlarmItem } from "@/types/alarm";
 import { styles } from "@/styles/styles";
+import type { AlarmItem } from "@/types/alarm";
 
 interface AlarmCardProps {
   item: AlarmItem;
@@ -12,6 +18,7 @@ interface AlarmCardProps {
   onEdit: (item: AlarmItem) => void;
 }
 
+// Custom function komponen untuk merender item kartu alarm
 export default function AlarmCard({
   item,
   onToggle,
@@ -23,16 +30,23 @@ export default function AlarmCard({
     null,
   );
 
-  useEffect(
-    () => () => {
+  const pendingTap = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isActionTriggered = useRef(false);
+  useEffect(() => {
+    return () => {
       if (pendingTap.current !== null) {
         clearTimeout(pendingTap.current);
       }
-    },
-    [],
-  );
+    };
+  }, []);
 
+  // 1x ketuk untuk toggle on/off, 2x ketuk cepat untuk edit
   const handleCardPress = () => {
+    if (isActionTriggered.current) {
+      isActionTriggered.current = false;
+      return;
+    }
+
     if (pendingTap.current !== null) {
       clearTimeout(pendingTap.current);
       pendingTap.current = null;
@@ -46,12 +60,33 @@ export default function AlarmCard({
     }, 300);
   };
 
+  // Handler tombol checkbox dengan pencegahan bubbling ke kartu
+  const handleTogglePress = () => {
+    isActionTriggered.current = true;
+    if (pendingTap.current !== null) {
+      clearTimeout(pendingTap.current);
+      pendingTap.current = null;
+    }
+    onToggle(item.id);
+  };
+
+  // Handler tombol hapus dengan pencegahan bubbling ke kartu
+  const handleDeletePress = () => {
+    isActionTriggered.current = true;
+    if (pendingTap.current !== null) {
+      clearTimeout(pendingTap.current);
+      pendingTap.current = null;
+    }
+    onDelete(item.id);
+  };
+
   return (
     <Pressable
       onPress={handleCardPress}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: item.isActive }}
       accessibilityLabel={`Alarm ${item.time}, ${item.label}`}
+      // Gabungan external style dan dynamic inline style
       style={[
         styles.alarmCard,
         {
@@ -64,13 +99,14 @@ export default function AlarmCard({
         },
       ]}
     >
+      {/* Checkbox toggle status alarm */}
       <Pressable
-        onPress={() => onToggle(item.id)}
+        onPress={handleTogglePress}
         style={styles.checkButton}
         hitSlop={8}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: item.isActive }}
-        accessibilityLabel={`Toggle alarm ${item.time}`}
+        accessibilityLabel={`Aktifkan atau nonaktifkan alarm ${item.time}`}
       >
         <Ionicons
           name={item.isActive ? "checkbox" : "square-outline"}
@@ -83,6 +119,7 @@ export default function AlarmCard({
         />
       </Pressable>
 
+      {/* Detail data alarm */}
       <View style={styles.alarmDetails}>
         <View style={styles.labelRow}>
           <Text
@@ -138,8 +175,9 @@ export default function AlarmCard({
         ) : null}
       </View>
 
+      {/* Tombol hapus alarm */}
       <Pressable
-        onPress={() => onDelete(item.id)}
+        onPress={handleDeletePress}
         style={styles.deleteButton}
         hitSlop={8}
         accessibilityRole="button"
