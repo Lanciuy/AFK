@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -10,11 +11,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import AlarmCard from "@/components/AlarmCard";
 import AlarmForm from "@/components/AlarmForm";
+import ThemeToggle from "@/components/ThemeToggle";
+import { useTheme } from "@/context/ThemeContext";
 import { INITIAL_ALARMS } from "@/data/alarmData";
 import { AlarmItem } from "@/types/alarm";
 import { styles } from "@/styles/styles";
 
 export default function AlarmScreen() {
+  const { theme } = useTheme();
   const [alarms, setAlarms] =
     useState<AlarmItem[]>(INITIAL_ALARMS);
 
@@ -232,17 +236,37 @@ export default function AlarmScreen() {
             <Text style={styles.headerTitle}>
               Alarm
             </Text>
+            <Pressable
+              onPress={() => router.push("/navigation-demo")}
+              accessibilityRole="button"
+              accessibilityLabel="Buka demo navigasi"
+              hitSlop={8}
+            >
+              <Ionicons
+                name="help-circle-outline"
+                size={24}
+                color="#ffffff"
+              />
+            </Pressable>
           </View>
 
-          <View style={styles.activeBadge}>
-            <Text style={styles.activeBadgeText}>
-              {activeAlarmCount} Aktif
-            </Text>
+          <View style={styles.headerActions}>
+            <View style={styles.activeBadge}>
+              <Text style={styles.activeBadgeText}>
+                {activeAlarmCount} Aktif
+              </Text>
+            </View>
+            <ThemeToggle />
           </View>
         </View>
       </View>
 
-      <View style={styles.contentContainer}>
+      <View
+        style={[
+          styles.contentContainer,
+          { backgroundColor: theme.background },
+        ]}
+      >
         <FlatList
           data={alarms}
           keyExtractor={(item) => item.id}
@@ -261,12 +285,22 @@ export default function AlarmScreen() {
               <Ionicons
                 name="alarm-outline"
                 size={64}
-                color="#cbd5e1"
+                color={theme.subtleText}
               />
-              <Text style={styles.emptyText}>
+              <Text
+                style={[
+                  styles.emptyText,
+                  { color: theme.text },
+                ]}
+              >
                 Belum ada alarm
               </Text>
-              <Text style={styles.emptySubtext}>
+              <Text
+                style={[
+                  styles.emptySubtext,
+                  { color: theme.mutedText },
+                ]}
+              >
                 Tekan tombol + di bawah untuk membuat alarm baru
               </Text>
             </View>

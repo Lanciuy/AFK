@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
+import { useTheme } from "@/context/ThemeContext";
 import { AlarmItem } from "@/types/alarm";
 import { styles } from "@/styles/styles";
 
@@ -17,6 +18,7 @@ export default function AlarmCard({
   onDelete,
   onEdit,
 }: AlarmCardProps) {
+  const { theme } = useTheme();
   const pendingTap = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -54,7 +56,10 @@ export default function AlarmCard({
         styles.alarmCard,
         {
           marginBottom: 12,
-          borderColor: item.isActive ? "#e53e3e" : "#f1f5f9",
+          backgroundColor: theme.card,
+          borderColor: item.isActive
+            ? "#e53e3e"
+            : theme.border,
           opacity: item.isActive ? 1 : 0.65,
         },
       ]}
@@ -70,36 +75,64 @@ export default function AlarmCard({
         <Ionicons
           name={item.isActive ? "checkbox" : "square-outline"}
           size={24}
-          color={item.isActive ? "#e53e3e" : "#cbd5e1"}
+          color={
+            item.isActive
+              ? "#e53e3e"
+              : theme.subtleText
+          }
         />
       </Pressable>
 
       <View style={styles.alarmDetails}>
         <View style={styles.labelRow}>
-          <Text selectable={false} style={styles.labelText}>
+          <Text
+            selectable={false}
+            style={[
+              styles.labelText,
+              { color: theme.mutedText },
+            ]}
+          >
             {item.label}
           </Text>
         </View>
 
         <View style={styles.timeRow}>
-          <Text selectable={false} style={styles.timeText}>
+          <Text
+            selectable={false}
+            style={[
+              styles.timeText,
+              { color: theme.text },
+            ]}
+          >
             {item.time}
           </Text>
 
           <Ionicons
             name="musical-notes"
             size={16}
-            color="#a0aec0"
+            color={theme.subtleText}
             style={styles.soundIcon}
           />
         </View>
 
-        <Text selectable={false} style={styles.scheduleText}>
+        <Text
+          selectable={false}
+          style={[
+            styles.scheduleText,
+            { color: theme.text },
+          ]}
+        >
           {item.schedule}
         </Text>
 
         {item.snoozeEnabled ? (
-          <Text selectable={false} style={styles.snoozeSummary}>
+          <Text
+            selectable={false}
+            style={[
+              styles.snoozeSummary,
+              { color: theme.mutedText },
+            ]}
+          >
             Snooze {item.snoozeInterval}m × {item.snoozeTimes}
           </Text>
         ) : null}
@@ -112,7 +145,11 @@ export default function AlarmCard({
         accessibilityRole="button"
         accessibilityLabel={`Hapus alarm ${item.time}`}
       >
-        <Ionicons name="trash-outline" size={20} color="#cbd5e1" />
+        <Ionicons
+          name="trash-outline"
+          size={20}
+          color={theme.subtleText}
+        />
       </Pressable>
     </Pressable>
   );
