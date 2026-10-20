@@ -13,11 +13,11 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#4a154b", // Deep plum/purple background for header
+    backgroundColor: "#1f2937",
   },
   headerContainer: {
-    backgroundColor: "#4a154b",
-    paddingHorizontal: 20,
+    backgroundColor: "#1f2937",
+    paddingHorizontal: 12,
     paddingTop: 12,
     paddingBottom: 24,
   },
@@ -26,20 +26,26 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  headerTitleGroup: {
+  headerActions: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
   },
+  headerTitleGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flexShrink: 1,
+  },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "700",
     color: "#ffffff",
     letterSpacing: 0.5,
   },
   activeBadge: {
     backgroundColor: "rgba(255, 255, 255, 0.18)",
-    paddingHorizontal: 12,
+    paddingHorizontal: 9,
     paddingVertical: 6,
     borderRadius: 16,
   },
@@ -47,6 +53,32 @@ export const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 13,
     fontWeight: "600",
+  },
+  themeToggle: {
+    minHeight: 40,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 6,
+    paddingLeft: 9,
+    paddingRight: 4,
+    borderRadius: 24,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.22)",
+  },
+  themeToggleText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  themeToggleIndicator: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#1685f8",
+    alignItems: "center",
+    justifyContent: "center",
   },
   contentContainer: {
     flex: 1,
