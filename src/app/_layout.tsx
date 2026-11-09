@@ -45,14 +45,7 @@ function RootStack() {
         <Stack.Screen
           name="alarm-detail"
           options={{
-            title: "Detail & Simulasi Alarm",
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="navigation-demo"
-          options={{
-            title: "Demo Navigasi Expo Router",
+            title: "Detail & Status Alarm",
             headerShown: false,
           }}
         />

@@ -20,7 +20,7 @@ import { fetchExternalMorningBriefingAsync } from "@/services/alarmAsyncService"
 import type { MorningBriefing } from "@/types/alarm";
 
 export default function AlarmDetailScreen() {
-  const { theme, isDarkMode } = useTheme();
+  const { theme } = useTheme();
 
   // [PENILAIAN - POIN 2]: Membaca parameter navigasi menggunakan useLocalSearchParams()
   const params = useLocalSearchParams<{
@@ -489,8 +489,8 @@ export default function AlarmDetailScreen() {
             style={[
               detailStyles.navActionButton,
               {
-                backgroundColor: isDarkMode ? "#1e293b" : "#4a154b",
-                borderColor: theme.border,
+                backgroundColor: theme.primary,
+                borderColor: theme.primary,
               },
             ]}
             accessibilityRole="button"
@@ -498,28 +498,6 @@ export default function AlarmDetailScreen() {
             <Ionicons name="checkmark-done" size={18} color="#ffffff" />
             <Text style={[detailStyles.navButtonText, { color: "#ffffff" }]}>
               Selesai &amp; Ke Beranda (router.replace)
-            </Text>
-          </Pressable>
-
-          {/* 3. router.push() */}
-          <Pressable
-            onPress={() => router.push("/navigation-demo")}
-            style={[
-              detailStyles.navActionButton,
-              {
-                backgroundColor: theme.primary,
-                borderColor: theme.primary,
-              },
-            ]}
-            accessibilityRole="button"
-          >
-            <Ionicons
-              name="compass-outline"
-              size={18}
-              color="#ffffff"
-            />
-            <Text style={[detailStyles.navButtonText, { color: "#ffffff" }]}>
-              Panduan Navigasi (router.push)
             </Text>
           </Pressable>
         </View>

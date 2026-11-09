@@ -283,20 +283,6 @@ export default function AlarmScreen() {
           </View>
 
           <View style={styles.headerActions}>
-            <Pressable
-              onPress={() => router.push("/navigation-demo")}
-              style={styles.headerNavButton}
-              accessibilityRole="button"
-              accessibilityLabel="Buka panduan demo navigasi"
-              hitSlop={8}
-            >
-              <Ionicons
-                name="compass-outline"
-                size={20}
-                color="#ffffff"
-              />
-            </Pressable>
-
             <ThemeToggle />
           </View>
         </View>
