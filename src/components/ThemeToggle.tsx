@@ -1,8 +1,4 @@
-/**
- * @file src/components/ThemeToggle.tsx
- * Komponen tombol alih tema (Dark Mode / Light Mode).
- * Didesain responsif, modern, dan memberikan umpan balik visual instan.
- */
+// Tombol alih tema aplikasi (Dark Mode / Light Mode)
 
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -32,6 +28,7 @@ export default function ThemeToggle() {
       }
       hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
     >
+      {/* Lingkaran indikator ikon bulan/matahari */}
       <View
         style={[
           styles.indicator,
@@ -47,6 +44,7 @@ export default function ThemeToggle() {
         />
       </View>
 
+      {/* Label teks status tema aktif */}
       <Text style={styles.label}>
         {isDarkMode ? "Dark" : "Light"}
       </Text>
@@ -54,6 +52,7 @@ export default function ThemeToggle() {
   );
 }
 
+// Gaya tampilan kapsul tombol pengalih tema
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",

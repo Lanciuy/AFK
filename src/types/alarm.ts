@@ -1,11 +1,4 @@
-/**
- * @file src/types/alarm.ts
- * Definisi tipe data dan antarmuka (interface) untuk modul Alarm dan External API.
- *
- * WHY:
- * Memastikan type safety end-to-end, pemetaan objek hasil parsing dari API eksternal,
- * serta payload form alarm bertahap (wizard).
- */
+// Definisi tipe data dan antarmuka model alarm dan External API
 
 export type AlarmLabel = string;
 
@@ -17,9 +10,7 @@ export type ScheduleOption =
   | "Tomorrow"
   | string;
 
-/**
- * Interface objek alarm utama yang disimpan dalam state aplikasi.
- */
+// Objek data alarm utama
 export interface AlarmItem {
   readonly id: string;
   time: string;
@@ -32,9 +23,7 @@ export interface AlarmItem {
   isActive: boolean;
 }
 
-/**
- * Interface payload data saat memvalidasi input pembuatan/pengeditan alarm.
- */
+// Payload input pembuatan dan pembaruan alarm
 export interface AlarmFormPayload {
   alarmName: string;
   hour: string;
@@ -46,9 +35,7 @@ export interface AlarmFormPayload {
   snoozeTimes: string;
 }
 
-/**
- * Interface struktur data mentah dari Open-Meteo Public Weather API.
- */
+// Skema respons Open-Meteo Weather API
 export interface ExternalWeatherApiResponse {
   latitude: number;
   longitude: number;
@@ -62,19 +49,14 @@ export interface ExternalWeatherApiResponse {
   };
 }
 
-/**
- * Interface struktur data mentah dari DummyJSON Quotes Public API.
- */
+// Skema respons DummyJSON Quotes API
 export interface ExternalQuoteApiResponse {
   id: number;
   quote: string;
   author: string;
 }
 
-/**
- * [PENILAIAN - POIN 1]: Interface untuk objek hasil pemetaan data External API.
- * Menggabungkan informasi cuaca pagi dan kutipan motivasi ke dalam satu entitas model.
- */
+// Model gabungan cuaca pagi dan kutipan motivasi
 export interface MorningBriefing {
   readonly temperature: number;
   readonly windSpeed: number;

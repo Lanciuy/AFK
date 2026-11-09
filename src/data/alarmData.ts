@@ -1,11 +1,8 @@
-/**
- * @file src/data/alarmData.ts
- * Inisialisasi data awal dan opsi alarm.
- */
+// Data awal dan konstanta konfigurasi alarm
 
 import type { AlarmItem, ScheduleOption } from "@/types/alarm";
 
-// Inisialisasi array of objects untuk data awal alarm
+// Daftar alarm bawaan saat aplikasi pertama kali dibuka
 export const INITIAL_ALARMS: AlarmItem[] = [
   {
     id: "1",
@@ -53,10 +50,24 @@ export const INITIAL_ALARMS: AlarmItem[] = [
   },
 ];
 
-/**
- * Daftar nada dering pilihan untuk alarm.
- * Menyediakan variasi nada klasik, elektronik, melodi tenang, dan suara alam.
- */
+// Opsi jadwal pengulangan alarm
+export const SCHEDULE_OPTIONS: readonly ScheduleOption[] = [
+  "Weekdays",
+  "Daily",
+  "Saturdays",
+  "Tomorrow",
+];
+
+// Pilihan preset waktu cepat pada form alarm
+export const QUICK_TIME_PRESETS = [
+  { label: "05:00 Subuh", h: "05", m: "00" },
+  { label: "06:00 Pagi", h: "06", m: "00" },
+  { label: "07:00 Masuk", h: "07", m: "00" },
+  { label: "12:30 Siang", h: "12", m: "30" },
+  { label: "21:30 Malam", h: "21", m: "30" },
+] as const;
+
+// Daftar nama nada dering alarm
 export const RINGTONES: readonly string[] = [
   "Default",
   "Alarm Classic",
@@ -74,10 +85,7 @@ export const RINGTONES: readonly string[] = [
   "Neon Synth",
 ];
 
-/**
- * Pemetaan nada dering alarm ke sumber audio MP3 internet terverifikasi (Mixkit CDN).
- * Berkas audio murni berformat audio/mpeg dan siap diputar menggunakan driver native expo-audio.
- */
+// Tautan file audio MP3 untuk masing-masing nada dering
 export const RINGTONE_AUDIO_MAP: Record<string, string> = {
   "Default": "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
   "Alarm Classic": "https://assets.mixkit.co/active_storage/sfx/2871/2871-preview.mp3",
@@ -94,10 +102,3 @@ export const RINGTONE_AUDIO_MAP: Record<string, string> = {
   "Echo Drop": "https://assets.mixkit.co/active_storage/sfx/2874/2874-preview.mp3",
   "Neon Synth": "https://assets.mixkit.co/active_storage/sfx/1000/1000-preview.mp3",
 };
-
-export const SCHEDULE_OPTIONS: readonly ScheduleOption[] = [
-  "Weekdays",
-  "Daily",
-  "Saturdays",
-  "Tomorrow",
-];

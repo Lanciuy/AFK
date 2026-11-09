@@ -1,14 +1,10 @@
-/**
- * @file src/components/AlarmCard.tsx
- * Komponen kartu alarm dengan interaksi toggle status, edit cepat, delete,
- * dan navigasi inspect ke halaman detail alarm.
- */
+// Komponen kartu item alarm dengan aksi toggle, edit, hapus, dan buka detail
 
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTheme } from "@/context/ThemeContext";
-import { styles } from "@/styles/styles";
+import { homeStyles } from "@/styles/homeStyles";
 import type { AlarmItem } from "@/types/alarm";
 
 interface AlarmCardProps {
@@ -28,12 +24,11 @@ export default function AlarmCard({
 }: AlarmCardProps) {
   const { theme } = useTheme();
 
-  // Timer untuk membedakan ketukan tunggal (toggle) dan ketukan ganda (edit)
+  // Referensi timer untuk membedakan ketukan tunggal (toggle) dan ganda (edit)
   const pendingTap = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Penanda untuk mencegah kartu ikut tertekan saat tombol aksi anak diklik
   const isActionTriggered = useRef(false);
 
-  // [PENILAIAN - POIN 1]: Menerapkan hook useEffect() untuk cleanup timer saat unmount
+  // Bersihkan timer ketukan yang tertunda saat komponen dilepas (unmount)
   useEffect(() => {
     return () => {
       if (pendingTap.current !== null) {
@@ -42,7 +37,7 @@ export default function AlarmCard({
     };
   }, []);
 
-  // 1x ketuk untuk toggle status on/off, 2x ketuk cepat untuk membuka modal edit
+  // 1x ketuk kartu untuk toggle on/off, 2x ketuk cepat untuk membuka modal edit
   const handleCardPress = () => {
     if (isActionTriggered.current) {
       isActionTriggered.current = false;
@@ -62,7 +57,7 @@ export default function AlarmCard({
     }, 280);
   };
 
-  // Handler tombol checkbox dengan isolasi event bubbling
+  // Ubah status aktif alarm lewat ikon checkbox tanpa memicu event kartu
   const handleTogglePress = () => {
     isActionTriggered.current = true;
     if (pendingTap.current !== null) {
@@ -72,7 +67,7 @@ export default function AlarmCard({
     onToggle(item.id);
   };
 
-  // Handler tombol hapus dengan isolasi event bubbling
+  // Hapus item alarm saat tombol tempat sampah ditekan
   const handleDeletePress = () => {
     isActionTriggered.current = true;
     if (pendingTap.current !== null) {
@@ -82,7 +77,7 @@ export default function AlarmCard({
     onDelete(item.id);
   };
 
-  // Handler tombol navigasi detail
+  // Buka halaman detail status alarm saat tombol panah kanan ditekan
   const handleInspectPress = () => {
     isActionTriggered.current = true;
     if (pendingTap.current !== null) {
@@ -101,7 +96,7 @@ export default function AlarmCard({
       accessibilityState={{ checked: item.isActive }}
       accessibilityLabel={`Alarm ${item.time}, ${item.label}`}
       style={[
-        styles.alarmCard,
+        homeStyles.alarmCard,
         {
           backgroundColor: theme.card,
           borderColor: item.isActive ? theme.primary : theme.border,
@@ -109,10 +104,10 @@ export default function AlarmCard({
         },
       ]}
     >
-      {/* Checkbox toggle status alarm */}
+      {/* Tombol checkbox di sisi kiri kartu */}
       <Pressable
         onPress={handleTogglePress}
-        style={styles.checkButton}
+        style={homeStyles.checkButton}
         hitSlop={8}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: item.isActive }}
@@ -125,21 +120,21 @@ export default function AlarmCard({
         />
       </Pressable>
 
-      {/* Detail data alarm */}
-      <View style={styles.alarmDetails}>
-        <View style={styles.labelRow}>
+      {/* Informasi utama alarm: label, jam, jadwal, nada dering, dan snooze */}
+      <View style={homeStyles.alarmDetails}>
+        <View style={homeStyles.labelRow}>
           <Text
             selectable={false}
-            style={[styles.labelText, { color: theme.mutedText }]}
+            style={[homeStyles.labelText, { color: theme.mutedText }]}
           >
             {item.label}
           </Text>
         </View>
 
-        <View style={styles.timeRow}>
+        <View style={homeStyles.timeRow}>
           <Text
             selectable={false}
-            style={[styles.timeText, { color: theme.text }]}
+            style={[homeStyles.timeText, { color: theme.text }]}
           >
             {item.time}
           </Text>
@@ -148,13 +143,13 @@ export default function AlarmCard({
             name="musical-notes"
             size={16}
             color={theme.subtleText}
-            style={styles.soundIcon}
+            style={homeStyles.soundIcon}
           />
         </View>
 
         <Text
           selectable={false}
-          style={[styles.scheduleText, { color: theme.secondaryText }]}
+          style={[homeStyles.scheduleText, { color: theme.secondaryText }]}
         >
           {item.schedule} • {item.ringtone}
         </Text>
@@ -162,19 +157,19 @@ export default function AlarmCard({
         {item.snoozeEnabled ? (
           <Text
             selectable={false}
-            style={[styles.snoozeSummary, { color: theme.mutedText }]}
+            style={[homeStyles.snoozeSummary, { color: theme.mutedText }]}
           >
             Snooze {item.snoozeInterval}m × {item.snoozeTimes}
           </Text>
         ) : null}
       </View>
 
-      {/* Baris aksi cepat: Navigasi inspect & Hapus */}
-      <View style={styles.cardActionsRow}>
+      {/* Tombol aksi cepat di sisi kanan: buka detail & hapus */}
+      <View style={homeStyles.cardActionsRow}>
         {onInspect ? (
           <Pressable
             onPress={handleInspectPress}
-            style={styles.actionIconButton}
+            style={homeStyles.actionIconButton}
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel={`Lihat detail navigasi alarm ${item.time}`}
@@ -189,7 +184,7 @@ export default function AlarmCard({
 
         <Pressable
           onPress={handleDeletePress}
-          style={styles.actionIconButton}
+          style={homeStyles.actionIconButton}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={`Hapus alarm ${item.time}`}

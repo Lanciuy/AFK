@@ -1,8 +1,4 @@
-/**
- * @file src/context/ThemeContext.tsx
- * Context provider untuk manajemen tema aplikasi (Light Mode & Dark Mode).
- * Menyediakan palet warna lengkap dan hook useTheme() untuk seluruh komponen.
- */
+// Context provider untuk manajemen tema warna aplikasi (Light & Dark Mode)
 
 import React, {
   createContext,
@@ -11,6 +7,7 @@ import React, {
   useState,
 } from "react";
 
+// Daftar token warna untuk mode terang dan gelap
 export const THEME_PALETTES = {
   light: {
     background: "#f7f8fa",
@@ -73,10 +70,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-/**
- * ThemeProvider membungkus hierarki root aplikasi agar state tema dapat diakses
- * oleh seluruh screen dan child component secara reaktif.
- */
+// Provider pembungkus aplikasi agar seluruh komponen dapat mengakses palet tema aktif
 export function ThemeProvider({
   children,
 }: {
@@ -85,13 +79,14 @@ export function ThemeProvider({
   const [isDarkMode, setIsDarkMode] = useState(false);
   const theme = isDarkMode ? THEME_PALETTES.dark : THEME_PALETTES.light;
 
+  // Beralih antara mode terang dan mode gelap
   const toggleTheme = () => {
     setIsDarkMode((prev) => !prev);
   };
 
   const value = useMemo(
     () => ({ isDarkMode, setIsDarkMode, toggleTheme, theme }),
-    [isDarkMode, theme],
+    [isDarkMode, theme]
   );
 
   return (
@@ -99,10 +94,7 @@ export function ThemeProvider({
   );
 }
 
-/**
- * Hook kustom useTheme mempermudah konsumsi state tema dan memastikan
- * komponen dipanggil dalam cakupan ThemeProvider.
- */
+// Hook untuk membaca tema aktif dan fungsi pengubah tema di komponen anak
 export function useTheme(): ThemeContextValue {
   const context = useContext(ThemeContext);
 

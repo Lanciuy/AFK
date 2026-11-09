@@ -1,18 +1,11 @@
-/**
- * @file src/app/_layout.tsx
- * Layout root untuk aplikasi Expo Router.
- *
- * WHY:
- * Membungkus seluruh aplikasi dengan ThemeProvider untuk Dark Mode adaptif,
- * mengonfigurasi StatusBar, serta mendefinisikan navigasi berbasis Stack
- * menggunakan komponen <Stack> dan <Stack.Screen>.
- */
+// Konfigurasi navigasi utama Expo Router dan pembungkus tema global
 
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 
+// Komponen paling atas yang menyuplai state tema (Light/Dark) ke seluruh layar
 export default function RootLayout() {
   return (
     <ThemeProvider>
@@ -21,13 +14,15 @@ export default function RootLayout() {
   );
 }
 
+// Pengaturan daftar rute halaman dalam tumpukan navigasi (Stack)
 function RootStack() {
-  const { theme, isDarkMode } = useTheme();
+  const { theme } = useTheme();
 
   return (
     <>
-      <StatusBar style={isDarkMode ? "light" : "light"} />
-      {/* [PENILAIAN - POIN 3]: Menerapkan _layout dan <Stack.Screen> */}
+      {/* Ikon status bar disetel terang karena latar header selalu berwarna gelap */}
+      <StatusBar style="light" />
+
       <Stack
         screenOptions={{
           headerShown: false,
@@ -35,6 +30,7 @@ function RootStack() {
           animation: "slide_from_right",
         }}
       >
+        {/* Rute layar utama daftar alarm */}
         <Stack.Screen
           name="index"
           options={{
@@ -42,6 +38,8 @@ function RootStack() {
             headerShown: false,
           }}
         />
+
+        {/* Rute layar detail status alarm dan simulasi dering */}
         <Stack.Screen
           name="alarm-detail"
           options={{

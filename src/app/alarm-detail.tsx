@@ -1,32 +1,22 @@
-/**
- * @file src/app/alarm-detail.tsx
- * Halaman status alarm terseting dan simulasi dering alarm.
- *
- * Menerapkan:
- * 1. Penghitungan estimasi sisa waktu berbunyi secara real-time.
- * 2. Hook useState dan useEffect() untuk simulasi dering alarm dan timer cleanup.
- * 3. Integrasi data cuaca pagi dan kutipan dari External API.
- * 4. Navigasi Expo Router: useLocalSearchParams(), router.push(), router.back(), dan router.replace().
- */
+// Halaman status alarm terseting dan simulasi dering alarm
 
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import React from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ThemeToggle from "@/components/ThemeToggle";
+import MathChallengeBox from "@/components/MathChallengeBox";
 import { useTheme } from "@/context/ThemeContext";
-import { fetchExternalMorningBriefingAsync } from "@/services/alarmAsyncService";
-import {
-  playAlarmSoundAsync,
-  stopAlarmSoundAsync,
-} from "@/services/soundService";
-import type { MorningBriefing } from "@/types/alarm";
+import { useAlarmSimulation } from "@/hooks/useAlarmSimulation";
+import { useMorningBriefing } from "@/hooks/useMorningBriefing";
+import { detailStyles } from "@/styles/detailStyles";
+import { calculateRemainingTime, formatElapsedMMSS } from "@/utils/timeUtils";
 
 export default function AlarmDetailScreen() {
   const { theme } = useTheme();
 
-  // [PENILAIAN - POIN 2]: Membaca parameter navigasi menggunakan useLocalSearchParams()
+  // Membaca parameter navigasi dari router
   const params = useLocalSearchParams<{
     id?: string;
     label?: string;
@@ -47,91 +37,19 @@ export default function AlarmDetailScreen() {
   const snoozeInterval = params.snoozeInterval ?? "5";
   const snoozeTimes = params.snoozeTimes ?? "3";
 
-  // State simulasi dering alarm
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-
-  // State cuaca & kutipan pagi dari External API
-  const [briefing, setBriefing] = useState<MorningBriefing | null>(null);
-
-  // [PENILAIAN - POIN 1]: Hook useEffect() untuk timer simulasi dan pemutaran audio native dengan cleanup function
-  useEffect(() => {
-    if (!isSimulating) {
-      stopAlarmSoundAsync().catch((err: Error) => {
-        console.warn("Gagal menghentikan suara alarm:", err.message);
-      });
-      return;
-    }
-
-    // Memutar nada dering alarm secara native berulang (loop) saat simulasi aktif
-    playAlarmSoundAsync(alarmRingtone, true).catch((err: Error) => {
-      console.warn("Gagal memutar suara alarm:", err.message);
-    });
-
-    const intervalId = setInterval(() => {
-      setElapsedSeconds((prev) => prev + 1);
-    }, 1000);
-
-    return () => {
-      clearInterval(intervalId);
-      // Menghentikan pemutaran audio saat simulasi berhenti atau layar di-unmount
-      stopAlarmSoundAsync().catch((err: Error) => {
-        console.warn("Gagal membersihkan pemutar audio saat unmount:", err.message);
-      });
-    };
-  }, [isSimulating, alarmRingtone]);
-
-  // [PENILAIAN - POIN 2 & POIN 3]: Memuat data External API menggunakan .then()
-  useEffect(() => {
-    fetchExternalMorningBriefingAsync()
-      .then((data: MorningBriefing) => {
-        setBriefing(data);
-      })
-      .catch((err: Error) => {
-        console.warn("Detail screen briefing load error:", err.message);
-      });
-  }, []);
-
-  const handleToggleSimulate = () => {
-    setIsSimulating((current) => {
-      const next = !current;
-      if (!next) {
-        setElapsedSeconds(0);
-        stopAlarmSoundAsync().catch((err: Error) => {
-          console.warn("Gagal menghentikan audio saat stop:", err.message);
-        });
-      }
-      return next;
-    });
-  };
-
-  const formatElapsed = (totalSec: number) => {
-    const mins = Math.floor(totalSec / 60);
-    const secs = totalSec % 60;
-    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  };
-
-  /**
-   * Menghitung selisih waktu menuju jam alarm berbunyi
-   */
-  const calculateRemainingTime = (targetTime: string): string => {
-    const [targetHour = 7, targetMin = 0] = targetTime
-      .split(":")
-      .map(Number);
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentMin = now.getMinutes();
-
-    let diffMinutes =
-      targetHour * 60 + targetMin - (currentHour * 60 + currentMin);
-    if (diffMinutes <= 0) {
-      diffMinutes += 24 * 60; // Jika jam target sudah lewat hari ini, setel untuk besok
-    }
-
-    const hours = Math.floor(diffMinutes / 60);
-    const minutes = diffMinutes % 60;
-    return `${hours} jam ${minutes} menit lagi`;
-  };
+  // Hook simulasi dering alarm, tantangan matematika, dan data cuaca
+  const {
+    isSimulating,
+    elapsedSeconds,
+    mathQuestion,
+    userAnswer,
+    challengeError,
+    startSimulation,
+    refreshMathQuestion,
+    handleAnswerChange,
+    submitChallengeAndStop,
+  } = useAlarmSimulation(alarmRingtone);
+  const { briefing } = useMorningBriefing();
 
   return (
     <SafeAreaView
@@ -140,10 +58,9 @@ export default function AlarmDetailScreen() {
         { backgroundColor: theme.headerBackground },
       ]}
     >
-      {/* Header Bar */}
+      {/* Header bar */}
       <View style={detailStyles.header}>
         <View style={detailStyles.headerLeft}>
-          {/* [PENILAIAN - POIN 2]: router.back() */}
           <Pressable
             onPress={() => router.back()}
             style={detailStyles.iconButton}
@@ -159,7 +76,6 @@ export default function AlarmDetailScreen() {
         <ThemeToggle />
       </View>
 
-      {/* Konten Halaman */}
       <ScrollView
         style={[
           detailStyles.bodyContainer,
@@ -167,7 +83,7 @@ export default function AlarmDetailScreen() {
         ]}
         contentContainerStyle={detailStyles.bodyContent}
       >
-        {/* Banner Sukses Alarm Terseting */}
+        {/* Banner konfirmasi alarm aktif */}
         <View
           style={[
             detailStyles.successBanner,
@@ -199,7 +115,7 @@ export default function AlarmDetailScreen() {
           </View>
         </View>
 
-        {/* Kartu Jam Utama */}
+        {/* Kartu jam dan rincian jadwal */}
         <View
           style={[
             detailStyles.mainCard,
@@ -257,7 +173,7 @@ export default function AlarmDetailScreen() {
           </View>
         </View>
 
-        {/* Kartu Prediksi Cuaca & Motivasi Pagi (External API) */}
+        {/* Kondisi cuaca dan motivasi pagi */}
         {briefing ? (
           <View
             style={[
@@ -330,7 +246,7 @@ export default function AlarmDetailScreen() {
           </View>
         ) : null}
 
-        {/* Panel Simulasi Dering Alarm (useState + useEffect) */}
+        {/* Panel simulasi uji bunyi dering alarm */}
         <View
           style={[
             detailStyles.sectionCard,
@@ -359,8 +275,8 @@ export default function AlarmDetailScreen() {
               { color: theme.secondaryText },
             ]}
           >
-            Uji coba simulasi bunyi alarm secara langsung untuk memastikan
-            volume, getar, dan nada dering berfungsi dengan baik.
+            Uji coba bunyi alarm secara langsung untuk memastikan volume dan nada
+            dering berfungsi dengan baik.
           </Text>
 
           <View
@@ -386,34 +302,40 @@ export default function AlarmDetailScreen() {
                 { color: isSimulating ? theme.primary : theme.mutedText },
               ]}
             >
-              {formatElapsed(elapsedSeconds)}
+              {formatElapsedMMSS(elapsedSeconds)}
             </Text>
           </View>
 
-          <Pressable
-            onPress={handleToggleSimulate}
-            style={[
-              detailStyles.simulateButton,
-              {
-                backgroundColor: isSimulating ? "#ef4444" : "#10b981",
-              },
-            ]}
-            accessibilityRole="button"
-          >
-            <Ionicons
-              name={
-                isSimulating ? "stop-circle-outline" : "play-circle-outline"
-              }
-              size={20}
-              color="#ffffff"
+          {/* Menampilkan tantangan matematika saat berdering, atau tombol mulai simulasi */}
+          {isSimulating ? (
+            <MathChallengeBox
+              question={mathQuestion}
+              userAnswer={userAnswer}
+              errorMessage={challengeError}
+              onChangeAnswer={handleAnswerChange}
+              onRefreshQuestion={refreshMathQuestion}
+              onSubmitChallenge={submitChallengeAndStop}
             />
-            <Text style={detailStyles.simulateButtonText}>
-              {isSimulating ? "Matikan Alarm" : "Tes Bunyikan Alarm Sekarang"}
-            </Text>
-          </Pressable>
+          ) : (
+            <Pressable
+              onPress={startSimulation}
+              style={[
+                detailStyles.simulateButton,
+                {
+                  backgroundColor: "#10b981",
+                },
+              ]}
+              accessibilityRole="button"
+            >
+              <Ionicons name="play-circle-outline" size={20} color="#ffffff" />
+              <Text style={detailStyles.simulateButtonText}>
+                Tes Bunyikan Alarm Sekarang
+              </Text>
+            </Pressable>
+          )}
         </View>
 
-        {/* Rincian Parameter Snooze */}
+        {/* Konfigurasi tunda (snooze) */}
         <View
           style={[
             detailStyles.sectionCard,
@@ -478,9 +400,8 @@ export default function AlarmDetailScreen() {
           ) : null}
         </View>
 
-        {/* [PENILAIAN - POIN 2]: Tombol Aksi Navigasi Expo Router */}
+        {/* Tombol navigasi Expo Router */}
         <View style={detailStyles.navButtonGroup}>
-          {/* 1. router.back() */}
           <Pressable
             onPress={() => router.back()}
             style={[
@@ -502,7 +423,6 @@ export default function AlarmDetailScreen() {
             </Text>
           </Pressable>
 
-          {/* 2. router.replace() */}
           <Pressable
             onPress={() => router.replace("/")}
             style={[
@@ -524,219 +444,3 @@ export default function AlarmDetailScreen() {
     </SafeAreaView>
   );
 }
-
-const detailStyles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: {
-    color: "#ffffff",
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  bodyContainer: {
-    flex: 1,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-  },
-  bodyContent: {
-    padding: 16,
-    gap: 14,
-    paddingBottom: 40,
-  },
-  successBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  successBannerTitle: {
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  successBannerSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
-    fontWeight: "500",
-  },
-  mainCard: {
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 20,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  labelBadge: {
-    fontSize: 13,
-    fontWeight: "700",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: 4,
-  },
-  bigTimeText: {
-    fontSize: 48,
-    fontWeight: "800",
-    letterSpacing: -1,
-  },
-  badgeRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 12,
-  },
-  subBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-  },
-  subBadgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  sectionCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
-    gap: 10,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  sectionDescription: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  weatherRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 4,
-  },
-  weatherTemp: {
-    fontSize: 32,
-    fontWeight: "800",
-  },
-  weatherCondition: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  weatherLocation: {
-    fontSize: 12,
-  },
-  quoteBox: {
-    padding: 10,
-    borderRadius: 10,
-    borderLeftWidth: 3,
-    marginTop: 4,
-  },
-  quoteText: {
-    fontSize: 12,
-    fontStyle: "italic",
-    lineHeight: 18,
-  },
-  quoteAuthor: {
-    fontSize: 11,
-    fontWeight: "700",
-    marginTop: 4,
-    textAlign: "right",
-  },
-  timerBox: {
-    alignItems: "center",
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginVertical: 4,
-  },
-  timerLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  timerValue: {
-    fontSize: 32,
-    fontWeight: "800",
-    marginTop: 2,
-    fontVariant: ["tabular-nums"],
-  },
-  simulateButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderRadius: 12,
-    paddingVertical: 12,
-  },
-  simulateButtonText: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  paramRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 6,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(148, 163, 184, 0.2)",
-  },
-  paramLabel: {
-    fontSize: 13,
-  },
-  paramValue: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  navButtonGroup: {
-    gap: 10,
-    marginTop: 6,
-  },
-  navActionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingVertical: 13,
-  },
-  navButtonText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-});
