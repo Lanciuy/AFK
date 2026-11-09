@@ -86,11 +86,97 @@ export const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 16,
-    paddingTop: 18,
+    paddingTop: 16,
   },
   listContent: {
     paddingBottom: 100, // Clearance untuk FAB
   },
+
+  /* Morning Briefing Card (External API Integration) */
+  briefingCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  briefingHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  briefingTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  briefingTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  briefingRefreshBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  briefingMainRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  briefingTempGroup: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 4,
+  },
+  briefingTemp: {
+    fontSize: 32,
+    fontWeight: "800",
+  },
+  briefingCondition: {
+    fontSize: 13,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  briefingMetaRight: {
+    alignItems: "flex-end",
+  },
+  briefingLocation: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  briefingUpdated: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  briefingQuoteBox: {
+    borderRadius: 12,
+    padding: 10,
+    borderLeftWidth: 3,
+  },
+  briefingQuoteText: {
+    fontSize: 12,
+    fontStyle: "italic",
+    lineHeight: 18,
+  },
+  briefingQuoteAuthor: {
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 4,
+    textAlign: "right",
+  },
+
+  /* Alarm Card */
   alarmCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -160,7 +246,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 60,
+    paddingVertical: 50,
   },
   emptyText: {
     fontSize: 16,
@@ -189,25 +275,111 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
+
+  /* Modal & Wizard Stepper */
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.55)",
+    paddingHorizontal: 16,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
   },
   modalContent: {
-    borderRadius: 20,
+    borderRadius: 22,
     padding: 20,
   },
   modalScrollView: {
-    maxHeight: "90%",
-    borderRadius: 20,
+    maxHeight: "92%",
+    borderRadius: 22,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "800",
+    textAlign: "center",
+    marginBottom: 14,
+  },
+
+  /* Stepper Progress Bar */
+  stepperContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  stepperStepWrapper: {
+    alignItems: "center",
+  },
+  stepperNode: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepperNodeText: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  stepperLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  stepperConnector: {
+    flex: 1,
+    height: 2,
+    marginBottom: 16,
+    marginHorizontal: 6,
+  },
+
+  /* Quick Time Presets */
+  presetWrapper: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
     marginBottom: 16,
   },
+  presetChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  presetChipText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  /* Step Summary Card */
+  summaryCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
+    gap: 8,
+    marginTop: 10,
+    marginBottom: 14,
+  },
+  summaryTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 2,
+  },
+  summaryLabel: {
+    fontSize: 12,
+  },
+  summaryValue: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
   formLabel: {
     fontSize: 13,
     fontWeight: "600",
@@ -224,19 +396,20 @@ export const styles = StyleSheet.create({
   timeInputRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
   },
   timeInput: {
-    flex: 1,
+    width: 90,
     textAlign: "center",
-    marginBottom: 14,
-    fontWeight: "700",
-    fontSize: 20,
+    fontWeight: "800",
+    fontSize: 32,
+    paddingVertical: 8,
   },
   timeSeparator: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginHorizontal: 8,
-    marginBottom: 14,
+    fontSize: 32,
+    fontWeight: "800",
+    marginHorizontal: 12,
   },
   scheduleContainer: {
     flexDirection: "row",
@@ -311,19 +484,23 @@ export const styles = StyleSheet.create({
     color: "#ef4444",
     fontSize: 13,
     marginTop: 4,
-    marginBottom: 8,
+    marginBottom: 10,
     fontWeight: "600",
+    textAlign: "center",
   },
   modalActions: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 16,
     gap: 10,
   },
   modalButton: {
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
   cancelButton: {},
   cancelButtonText: {

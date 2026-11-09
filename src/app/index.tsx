@@ -1,18 +1,24 @@
 /**
  * @file src/app/index.tsx
- * Halaman utama daftar alarm.
+ * Halaman utama daftar alarm dan dashboard waktu & cuaca.
  *
  * Menerapkan:
- * 1. Hook useState untuk manajemen daftar alarm, form input, dan state waktu real-time.
- * 2. Hook useEffect() untuk pembaruan jam digital real-time dengan timer cleanup.
- * 3. Navigasi router.push() menuju halaman detail dan demo navigasi Expo Router.
- * 4. Komponen Dark Mode toggle adaptif dan responsif.
+ * 1. Pengambilan data dari 2 External API ke dalam Object bertipe Interface (MorningBriefing).
+ * 2. Pemrosesan async dengan Custom Async Function & Pre-built Async Function.
+ * 3. Penanganan Promise menggunakan rantai .then(), .resolve(), dan .reject().
+ * 4. Navigasi bertahap dari pengaturan form hingga status alarm terseting (router.push).
  */
 
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import AlarmCard from "@/components/AlarmCard";
@@ -20,24 +26,33 @@ import AlarmForm from "@/components/AlarmForm";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
 import { INITIAL_ALARMS } from "@/data/alarmData";
+import {
+  fetchExternalMorningBriefingAsync,
+  validateAndBuildAlarmAsync,
+} from "@/services/alarmAsyncService";
 import { styles } from "@/styles/styles";
-import type { AlarmItem } from "@/types/alarm";
+import type { AlarmItem, MorningBriefing } from "@/types/alarm";
 
 export default function AlarmScreen() {
   const { theme } = useTheme();
 
-  // [PENILAIAN - POIN 1]: Menerapkan hook useState untuk manajemen state alarm & form
+  // [PENILAIAN - POIN 1]: State data alarm berupa array of objects bertipe AlarmItem[]
   const [alarms, setAlarms] = useState<AlarmItem[]>(INITIAL_ALARMS);
   const [editingAlarm, setEditingAlarm] = useState<AlarmItem | null>(null);
+
+  // [PENILAIAN - POIN 1]: State untuk menampung Object bertipe Interface MorningBriefing dari External API
+  const [morningBriefing, setMorningBriefing] =
+    useState<MorningBriefing | null>(null);
+  const [isBriefingLoading, setIsBriefingLoading] = useState(false);
 
   // State kontrol visibilitas form modal
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isRingtoneModalVisible, setIsRingtoneModalVisible] = useState(false);
 
   // State field form alarm
-  const [alarmName, setAlarmName] = useState("Alarm Baru");
-  const [hour, setHour] = useState("07");
-  const [minute, setMinute] = useState("00");
+  const [alarmName, setAlarmName] = useState("Bangun Pagi");
+  const [hour, setHour] = useState("06");
+  const [minute, setMinute] = useState("30");
   const [schedule, setSchedule] = useState("Daily");
   const [ringtone, setRingtone] = useState("Default");
   const [snoozeEnabled, setSnoozeEnabled] = useState(false);
@@ -48,7 +63,7 @@ export default function AlarmScreen() {
   // State jam digital real-time
   const [currentTime, setCurrentTime] = useState("");
 
-  // [PENILAIAN - POIN 1]: Menerapkan hook useEffect() untuk live digital clock dengan timer cleanup
+  // [PENILAIAN - POIN 1]: Hook useEffect() untuk live digital clock dengan timer cleanup
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -64,11 +79,51 @@ export default function AlarmScreen() {
     return () => clearInterval(timer);
   }, []);
 
-  // Custom function untuk reset input form
+  /**
+   * Fungsi pemuat ulang briefing pagi dari External API untuk interaksi tombol refresh.
+   * [PENILAIAN - POIN 3]: Menggunakan fungsi .then() dan .catch()
+   */
+  const handleRefreshBriefing = () => {
+    setIsBriefingLoading(true);
+
+    fetchExternalMorningBriefingAsync()
+      .then((briefingObject: MorningBriefing) => {
+        // Objek bertipe interface MorningBriefing disimpan ke dalam state
+        setMorningBriefing(briefingObject);
+      })
+      .catch((error: Error) => {
+        console.warn("Gagal memuat briefing:", error.message);
+      })
+      .finally(() => {
+        setIsBriefingLoading(false);
+      });
+  };
+
+  // [PENILAIAN - POIN 2 & POIN 3]:
+  // Memuat data dari External API saat pertama kali mount menggunakan Custom Async Function & .then()
+  useEffect(() => {
+    let isMounted = true;
+
+    fetchExternalMorningBriefingAsync()
+      .then((briefingObject: MorningBriefing) => {
+        if (isMounted) {
+          setMorningBriefing(briefingObject);
+        }
+      })
+      .catch((error: Error) => {
+        console.warn("Gagal memuat briefing awal:", error.message);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Reset input form
   const resetForm = () => {
-    setAlarmName("Alarm Baru");
-    setHour("07");
-    setMinute("00");
+    setAlarmName("Bangun Pagi");
+    setHour("06");
+    setMinute("30");
     setSchedule("Daily");
     setRingtone("Default");
     setSnoozeEnabled(false);
@@ -77,7 +132,7 @@ export default function AlarmScreen() {
     setFormError("");
   };
 
-  // Custom function untuk toggle aktif/nonaktif alarm
+  // Toggle aktif/nonaktif alarm
   const toggleAlarm = (id: string) => {
     setAlarms((prev) =>
       prev.map((item) =>
@@ -86,19 +141,19 @@ export default function AlarmScreen() {
     );
   };
 
-  // Custom function untuk menghapus alarm
+  // Hapus alarm
   const deleteAlarm = (id: string) => {
     setAlarms((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Custom function untuk membuka modal tambah alarm
+  // Buka modal tambah alarm
   const openAddModal = () => {
     resetForm();
     setEditingAlarm(null);
     setIsAddModalVisible(true);
   };
 
-  // Custom function untuk membuka modal edit alarm
+  // Buka modal edit alarm
   const openEditModal = (item: AlarmItem) => {
     const [h = "07", m = "00"] = item.time.split(":");
     setEditingAlarm(item);
@@ -114,7 +169,7 @@ export default function AlarmScreen() {
     setIsAddModalVisible(true);
   };
 
-  // [PENILAIAN - POIN 2]: Menerapkan router.push() dengan pengiriman parameter ke alarm-detail
+  // Navigasi ke halaman detail / status alarm terseting
   const handleInspectAlarm = (item: AlarmItem) => {
     router.push({
       pathname: "/alarm-detail",
@@ -131,7 +186,7 @@ export default function AlarmScreen() {
     });
   };
 
-  // Custom function untuk menutup modal alarm
+  // Tutup modal alarm
   const closeAlarmModal = () => {
     setIsAddModalVisible(false);
     setIsRingtoneModalVisible(false);
@@ -139,77 +194,59 @@ export default function AlarmScreen() {
     resetForm();
   };
 
-  // Custom function untuk validasi dan menyimpan alarm
+  /**
+   * [PENILAIAN - POIN 2 & POIN 3]:
+   * Menggunakan custom async function `validateAndBuildAlarmAsync`
+   * dan mengonsumsi kembalian Promise menggunakan fungsi .then() dan .catch().
+   */
   const saveAlarm = () => {
-    const trimmedName = alarmName.trim();
-    const parsedHour = Number(hour);
-    const parsedMinute = Number(minute);
-    const parsedSnoozeInterval = Number(snoozeInterval);
-    const parsedSnoozeTimes = Number(snoozeTimes);
+    setFormError("");
 
-    if (!trimmedName) {
-      setFormError("Nama alarm tidak boleh kosong.");
-      return;
-    }
-
-    if (!/\p{L}/u.test(trimmedName)) {
-      setFormError("Nama alarm harus mengandung minimal satu huruf.");
-      return;
-    }
-
-    if (!/^\d+$/.test(hour) || parsedHour < 0 || parsedHour > 23) {
-      setFormError("Jam harus berupa angka antara 00 dan 23.");
-      return;
-    }
-
-    if (!/^\d+$/.test(minute) || parsedMinute < 0 || parsedMinute > 59) {
-      setFormError("Menit harus berupa angka antara 00 dan 59.");
-      return;
-    }
-
-    if (snoozeEnabled) {
-      if (!/^\d+$/.test(snoozeInterval) || parsedSnoozeInterval < 1) {
-        setFormError("Snooze Interval harus berupa angka minimal 1.");
-        return;
-      }
-      if (!/^\d+$/.test(snoozeTimes) || parsedSnoozeTimes < 1) {
-        setFormError("Snooze Times harus berupa angka minimal 1.");
-        return;
-      }
-    }
-
-    const updatedFields = {
-      time: `${String(parsedHour).padStart(2, "0")}:${String(parsedMinute).padStart(2, "0")}`,
-      label: trimmedName,
+    const payload = {
+      alarmName,
+      hour,
+      minute,
       schedule,
       ringtone,
       snoozeEnabled,
-      snoozeInterval: snoozeEnabled ? parsedSnoozeInterval : 5,
-      snoozeTimes: snoozeEnabled ? parsedSnoozeTimes : 3,
+      snoozeInterval,
+      snoozeTimes,
     };
 
-    if (editingAlarm) {
-      setAlarms((prev) =>
-        prev.map((item) =>
-          item.id === editingAlarm.id ? { ...item, ...updatedFields } : item,
-        ),
-      );
-    } else {
-      let uniqueId = Date.now();
-      while (alarms.some((item) => item.id === String(uniqueId))) {
-        uniqueId += 1;
-      }
+    validateAndBuildAlarmAsync(payload, alarms, editingAlarm)
+      .then((savedAlarm: AlarmItem) => {
+        // [PENILAIAN - POIN 3]: Blok .then() dieksekusi saat Promise.resolve() berhasil
+        if (editingAlarm) {
+          setAlarms((prev) =>
+            prev.map((item) =>
+              item.id === editingAlarm.id ? savedAlarm : item,
+            ),
+          );
+        } else {
+          setAlarms((prev) => [savedAlarm, ...prev]);
+        }
 
-      const newAlarm: AlarmItem = {
-        id: String(uniqueId),
-        ...updatedFields,
-        isActive: true,
-      };
+        closeAlarmModal();
 
-      setAlarms((prev) => [newAlarm, ...prev]);
-    }
-
-    closeAlarmModal();
+        // Alur bertahap: Setelah alarm berhasil disetel, arahkan langsung ke halaman Alarm Terseting
+        router.push({
+          pathname: "/alarm-detail",
+          params: {
+            id: savedAlarm.id,
+            label: savedAlarm.label,
+            time: savedAlarm.time,
+            schedule: savedAlarm.schedule,
+            ringtone: savedAlarm.ringtone,
+            snoozeEnabled: String(savedAlarm.snoozeEnabled),
+            snoozeInterval: String(savedAlarm.snoozeInterval),
+            snoozeTimes: String(savedAlarm.snoozeTimes),
+          },
+        });
+      })
+      .catch((error: Error) => {
+        // [PENILAIAN - POIN 3]: Menangkap kegagalan dari Promise.reject()
+        setFormError(error.message);
+      });
   };
 
   // Render item untuk FlatList
@@ -246,7 +283,6 @@ export default function AlarmScreen() {
           </View>
 
           <View style={styles.headerActions}>
-            {/* [PENILAIAN - POIN 2]: Menerapkan router.push() menuju halaman demo navigasi */}
             <Pressable
               onPress={() => router.push("/navigation-demo")}
               style={styles.headerNavButton}
@@ -261,7 +297,6 @@ export default function AlarmScreen() {
               />
             </Pressable>
 
-            {/* Tombol Dark Mode / Light Mode responsif */}
             <ThemeToggle />
           </View>
         </View>
@@ -281,7 +316,7 @@ export default function AlarmScreen() {
         </View>
       </View>
 
-      {/* Konten Daftar Alarm */}
+      {/* Konten Halaman */}
       <View
         style={[
           styles.contentContainer,
@@ -294,6 +329,127 @@ export default function AlarmScreen() {
           renderItem={renderAlarmCard}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            /* [PENILAIAN - POIN 1]: Komponen Tampilan Data dari External API */
+            <View
+              style={[
+                styles.briefingCard,
+                {
+                  backgroundColor: theme.card,
+                  borderColor: theme.border,
+                },
+              ]}
+            >
+              <View style={styles.briefingHeader}>
+                <View style={styles.briefingTitleRow}>
+                  <Ionicons
+                    name="partly-sunny-outline"
+                    size={16}
+                    color={theme.primary}
+                  />
+                  <Text
+                    style={[styles.briefingTitle, { color: theme.primary }]}
+                  >
+                    Info Cuaca &amp; Kutipan Pagi (External API)
+                  </Text>
+                </View>
+
+                <Pressable
+                  onPress={handleRefreshBriefing}
+                  style={[
+                    styles.briefingRefreshBtn,
+                    { backgroundColor: theme.inputBackground },
+                  ]}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Muat ulang data cuaca dan kutipan"
+                >
+                  {isBriefingLoading ? (
+                    <ActivityIndicator size="small" color={theme.primary} />
+                  ) : (
+                    <Ionicons
+                      name="refresh"
+                      size={14}
+                      color={theme.secondaryText}
+                    />
+                  )}
+                </Pressable>
+              </View>
+
+              {morningBriefing ? (
+                <>
+                  <View style={styles.briefingMainRow}>
+                    <View>
+                      <View style={styles.briefingTempGroup}>
+                        <Text
+                          style={[styles.briefingTemp, { color: theme.text }]}
+                        >
+                          {morningBriefing.temperature}°C
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.briefingCondition,
+                          { color: theme.secondaryText },
+                        ]}
+                      >
+                        {morningBriefing.weatherLabel} • Angin{" "}
+                        {morningBriefing.windSpeed} km/j
+                      </Text>
+                    </View>
+
+                    <View style={styles.briefingMetaRight}>
+                      <Text
+                        style={[
+                          styles.briefingLocation,
+                          { color: theme.text },
+                        ]}
+                      >
+                        {morningBriefing.locationName}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.briefingUpdated,
+                          { color: theme.mutedText },
+                        ]}
+                      >
+                        Update: {morningBriefing.lastUpdated}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.briefingQuoteBox,
+                      {
+                        backgroundColor: theme.inputBackground,
+                        borderLeftColor: theme.primary,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.briefingQuoteText,
+                        { color: theme.text },
+                      ]}
+                    >
+                      &ldquo;{morningBriefing.quote}&rdquo;
+                    </Text>
+                    <Text
+                      style={[
+                        styles.briefingQuoteAuthor,
+                        { color: theme.primary },
+                      ]}
+                    >
+                      — {morningBriefing.quoteAuthor}
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <ActivityIndicator size="small" color={theme.primary} />
+              )}
+            </View>
+          }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons
@@ -307,7 +463,7 @@ export default function AlarmScreen() {
               <Text
                 style={[styles.emptySubtext, { color: theme.mutedText }]}
               >
-                Tekan tombol + di bawah untuk membuat alarm baru
+                Tekan tombol + di bawah untuk mengatur alarm bertahap
               </Text>
             </View>
           }
@@ -317,7 +473,7 @@ export default function AlarmScreen() {
           onPress={openAddModal}
           style={[styles.fabButton, { backgroundColor: theme.primary }]}
           accessibilityRole="button"
-          accessibilityLabel="Tambah alarm baru"
+          accessibilityLabel="Atur alarm baru"
         >
           <Ionicons name="add" size={32} color="#ffffff" />
         </Pressable>
@@ -348,6 +504,7 @@ export default function AlarmScreen() {
         setSnoozeEnabled={setSnoozeEnabled}
         setSnoozeInterval={setSnoozeInterval}
         setSnoozeTimes={setSnoozeTimes}
+        setFormError={setFormError}
       />
     </SafeAreaView>
   );

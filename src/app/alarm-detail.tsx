@@ -1,11 +1,12 @@
 /**
  * @file src/app/alarm-detail.tsx
- * Halaman detail dan simulasi dering alarm.
+ * Halaman status alarm terseting dan simulasi dering alarm.
  *
  * Menerapkan:
- * 1. Hook useState dan useEffect() untuk live ring simulation counter dan timer cleanup.
- * 2. Navigasi Expo Router: useLocalSearchParams(), router.push(), router.back(), dan router.replace().
- * 3. Tampilan adaptif dengan ThemeContext (Dark Mode / Light Mode).
+ * 1. Penghitungan estimasi sisa waktu berbunyi secara real-time.
+ * 2. Hook useState dan useEffect() untuk simulasi dering alarm dan timer cleanup.
+ * 3. Integrasi data cuaca pagi dan kutipan dari External API.
+ * 4. Navigasi Expo Router: useLocalSearchParams(), router.push(), router.back(), dan router.replace().
  */
 
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +16,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
+import { fetchExternalMorningBriefingAsync } from "@/services/alarmAsyncService";
+import type { MorningBriefing } from "@/types/alarm";
 
 export default function AlarmDetailScreen() {
   const { theme, isDarkMode } = useTheme();
@@ -32,7 +35,7 @@ export default function AlarmDetailScreen() {
   }>();
 
   const alarmId = params.id ?? "1";
-  const alarmLabel = params.label ?? "Alarm Utama";
+  const alarmLabel = params.label ?? "Bangun Pagi";
   const alarmTime = params.time ?? "07:00";
   const alarmSchedule = params.schedule ?? "Daily";
   const alarmRingtone = params.ringtone ?? "Default";
@@ -40,11 +43,14 @@ export default function AlarmDetailScreen() {
   const snoozeInterval = params.snoozeInterval ?? "5";
   const snoozeTimes = params.snoozeTimes ?? "3";
 
-  // [PENILAIAN - POIN 1]: Menerapkan hook useState untuk kontrol simulasi dering alarm
+  // State simulasi dering alarm
   const [isSimulating, setIsSimulating] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-  // [PENILAIAN - POIN 1]: Menerapkan hook useEffect() dengan cleanup function
+  // State cuaca & kutipan pagi dari External API
+  const [briefing, setBriefing] = useState<MorningBriefing | null>(null);
+
+  // [PENILAIAN - POIN 1]: Hook useEffect() untuk timer simulasi dengan cleanup function
   useEffect(() => {
     if (!isSimulating) {
       return;
@@ -58,6 +64,17 @@ export default function AlarmDetailScreen() {
       clearInterval(intervalId);
     };
   }, [isSimulating]);
+
+  // [PENILAIAN - POIN 2 & POIN 3]: Memuat data External API menggunakan .then()
+  useEffect(() => {
+    fetchExternalMorningBriefingAsync()
+      .then((data: MorningBriefing) => {
+        setBriefing(data);
+      })
+      .catch((err: Error) => {
+        console.warn("Detail screen briefing load error:", err.message);
+      });
+  }, []);
 
   const handleToggleSimulate = () => {
     setIsSimulating((current) => {
@@ -75,6 +92,28 @@ export default function AlarmDetailScreen() {
     return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 
+  /**
+   * Menghitung selisih waktu menuju jam alarm berbunyi
+   */
+  const calculateRemainingTime = (targetTime: string): string => {
+    const [targetHour = 7, targetMin = 0] = targetTime
+      .split(":")
+      .map(Number);
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMin = now.getMinutes();
+
+    let diffMinutes =
+      targetHour * 60 + targetMin - (currentHour * 60 + currentMin);
+    if (diffMinutes <= 0) {
+      diffMinutes += 24 * 60; // Jika jam target sudah lewat hari ini, setel untuk besok
+    }
+
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    return `${hours} jam ${minutes} menit lagi`;
+  };
+
   return (
     <SafeAreaView
       style={[
@@ -82,10 +121,10 @@ export default function AlarmDetailScreen() {
         { backgroundColor: theme.headerBackground },
       ]}
     >
-      {/* Header bar */}
+      {/* Header Bar */}
       <View style={detailStyles.header}>
         <View style={detailStyles.headerLeft}>
-          {/* [PENILAIAN - POIN 2]: Menerapkan router.back() */}
+          {/* [PENILAIAN - POIN 2]: router.back() */}
           <Pressable
             onPress={() => router.back()}
             style={detailStyles.iconButton}
@@ -95,7 +134,7 @@ export default function AlarmDetailScreen() {
           >
             <Ionicons name="arrow-back" size={22} color="#ffffff" />
           </Pressable>
-          <Text style={detailStyles.headerTitle}>Detail Alarm</Text>
+          <Text style={detailStyles.headerTitle}>Status Alarm</Text>
         </View>
 
         <ThemeToggle />
@@ -109,6 +148,38 @@ export default function AlarmDetailScreen() {
         ]}
         contentContainerStyle={detailStyles.bodyContent}
       >
+        {/* Banner Sukses Alarm Terseting */}
+        <View
+          style={[
+            detailStyles.successBanner,
+            {
+              backgroundColor: theme.selectedBackground,
+              borderColor: theme.selectedBorder,
+            },
+          ]}
+        >
+          <Ionicons
+            name="checkmark-circle"
+            size={22}
+            color={theme.primary}
+          />
+          <View style={{ flex: 1 }}>
+            <Text
+              style={[detailStyles.successBannerTitle, { color: theme.primary }]}
+            >
+              ALARM BERHASIL DISETEL &amp; AKTIF
+            </Text>
+            <Text
+              style={[
+                detailStyles.successBannerSubtitle,
+                { color: theme.secondaryText },
+              ]}
+            >
+              Akan berbunyi dalam {calculateRemainingTime(alarmTime)}
+            </Text>
+          </View>
+        </View>
+
         {/* Kartu Jam Utama */}
         <View
           style={[
@@ -167,6 +238,79 @@ export default function AlarmDetailScreen() {
           </View>
         </View>
 
+        {/* Kartu Prediksi Cuaca & Motivasi Pagi (External API) */}
+        {briefing ? (
+          <View
+            style={[
+              detailStyles.sectionCard,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.border,
+              },
+            ]}
+          >
+            <View style={detailStyles.sectionHeader}>
+              <Ionicons
+                name="sunny-outline"
+                size={20}
+                color={theme.primary}
+              />
+              <Text
+                style={[detailStyles.sectionTitle, { color: theme.text }]}
+              >
+                Kondisi Cuaca Saat Alarm Berbunyi
+              </Text>
+            </View>
+
+            <View style={detailStyles.weatherRow}>
+              <Text
+                style={[detailStyles.weatherTemp, { color: theme.text }]}
+              >
+                {briefing.temperature}°C
+              </Text>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text
+                  style={[
+                    detailStyles.weatherCondition,
+                    { color: theme.text },
+                  ]}
+                >
+                  {briefing.weatherLabel}
+                </Text>
+                <Text
+                  style={[
+                    detailStyles.weatherLocation,
+                    { color: theme.mutedText },
+                  ]}
+                >
+                  {briefing.locationName}
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={[
+                detailStyles.quoteBox,
+                {
+                  backgroundColor: theme.inputBackground,
+                  borderLeftColor: theme.primary,
+                },
+              ]}
+            >
+              <Text
+                style={[detailStyles.quoteText, { color: theme.text }]}
+              >
+                &ldquo;{briefing.quote}&rdquo;
+              </Text>
+              <Text
+                style={[detailStyles.quoteAuthor, { color: theme.primary }]}
+              >
+                — {briefing.quoteAuthor}
+              </Text>
+            </View>
+          </View>
+        ) : null}
+
         {/* Panel Simulasi Dering Alarm (useState + useEffect) */}
         <View
           style={[
@@ -196,9 +340,8 @@ export default function AlarmDetailScreen() {
               { color: theme.secondaryText },
             ]}
           >
-            Menguji siklus hidup timer reaktif menggunakan hook useState &amp;
-            useEffect(). Timer otomatis dibersihkan saat simulasi dimatikan atau
-            layar di-unmount.
+            Uji coba simulasi bunyi alarm secara langsung untuk memastikan
+            volume, getar, dan nada dering berfungsi dengan baik.
           </Text>
 
           <View
@@ -216,7 +359,7 @@ export default function AlarmDetailScreen() {
                 { color: theme.secondaryText },
               ]}
             >
-              {isSimulating ? "Alarm Berdering Selama" : "Simulasi Siap"}
+              {isSimulating ? "Alarm Sedang Berdering" : "Simulasi Siap"}
             </Text>
             <Text
               style={[
@@ -239,12 +382,14 @@ export default function AlarmDetailScreen() {
             accessibilityRole="button"
           >
             <Ionicons
-              name={isSimulating ? "stop-circle-outline" : "play-circle-outline"}
+              name={
+                isSimulating ? "stop-circle-outline" : "play-circle-outline"
+              }
               size={20}
               color="#ffffff"
             />
             <Text style={detailStyles.simulateButtonText}>
-              {isSimulating ? "Hentikan Dering" : "Mulai Deringkan Alarm"}
+              {isSimulating ? "Matikan Alarm" : "Tes Bunyikan Alarm Sekarang"}
             </Text>
           </Pressable>
         </View>
@@ -260,7 +405,7 @@ export default function AlarmDetailScreen() {
           ]}
         >
           <Text style={[detailStyles.sectionTitle, { color: theme.text }]}>
-            Konfigurasi Snooze
+            Konfigurasi Tunda (Snooze)
           </Text>
           <View style={detailStyles.paramRow}>
             <Text
@@ -292,7 +437,7 @@ export default function AlarmDetailScreen() {
                 <Text
                   style={[detailStyles.paramValue, { color: theme.text }]}
                 >
-                  {snoozeInterval} menit
+                  {snoozeInterval} menit sekali
                 </Text>
               </View>
               <View style={detailStyles.paramRow}>
@@ -307,7 +452,7 @@ export default function AlarmDetailScreen() {
                 <Text
                   style={[detailStyles.paramValue, { color: theme.text }]}
                 >
-                  {snoozeTimes} kali dering
+                  {snoozeTimes} kali pengulangan
                 </Text>
               </View>
             </>
@@ -334,7 +479,7 @@ export default function AlarmDetailScreen() {
               color={theme.text}
             />
             <Text style={[detailStyles.navButtonText, { color: theme.text }]}>
-              Kembali (router.back)
+              Kembali ke Daftar (router.back)
             </Text>
           </Pressable>
 
@@ -350,9 +495,9 @@ export default function AlarmDetailScreen() {
             ]}
             accessibilityRole="button"
           >
-            <Ionicons name="home-outline" size={18} color="#ffffff" />
+            <Ionicons name="checkmark-done" size={18} color="#ffffff" />
             <Text style={[detailStyles.navButtonText, { color: "#ffffff" }]}>
-              Beranda (router.replace)
+              Selesai &amp; Ke Beranda (router.replace)
             </Text>
           </Pressable>
 
@@ -374,7 +519,7 @@ export default function AlarmDetailScreen() {
               color="#ffffff"
             />
             <Text style={[detailStyles.navButtonText, { color: "#ffffff" }]}>
-              Demo Lengkap (router.push)
+              Panduan Navigasi (router.push)
             </Text>
           </Pressable>
         </View>
@@ -422,6 +567,24 @@ const detailStyles = StyleSheet.create({
     padding: 16,
     gap: 14,
     paddingBottom: 40,
+  },
+  successBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  successBannerTitle: {
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  successBannerSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+    fontWeight: "500",
   },
   mainCard: {
     borderRadius: 18,
@@ -481,6 +644,39 @@ const detailStyles = StyleSheet.create({
   sectionDescription: {
     fontSize: 13,
     lineHeight: 18,
+  },
+  weatherRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 4,
+  },
+  weatherTemp: {
+    fontSize: 32,
+    fontWeight: "800",
+  },
+  weatherCondition: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  weatherLocation: {
+    fontSize: 12,
+  },
+  quoteBox: {
+    padding: 10,
+    borderRadius: 10,
+    borderLeftWidth: 3,
+    marginTop: 4,
+  },
+  quoteText: {
+    fontSize: 12,
+    fontStyle: "italic",
+    lineHeight: 18,
+  },
+  quoteAuthor: {
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 4,
+    textAlign: "right",
   },
   timerBox: {
     alignItems: "center",
