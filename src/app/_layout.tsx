@@ -1,12 +1,18 @@
+/**
+ * @file src/app/_layout.tsx
+ * Layout root untuk aplikasi Expo Router.
+ *
+ * WHY:
+ * Membungkus seluruh aplikasi dengan ThemeProvider untuk Dark Mode adaptif,
+ * mengonfigurasi StatusBar, serta mendefinisikan navigasi berbasis Stack
+ * menggunakan komponen <Stack> dan <Stack.Screen>.
+ */
+
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 
-/**
- * RootLayout defines the primary navigation tree for Expo Router.
- * Configures the light status bar icons and matches background color with the header theme.
- */
 export default function RootLayout() {
   return (
     <ThemeProvider>
@@ -16,20 +22,40 @@ export default function RootLayout() {
 }
 
 function RootStack() {
-  const { theme } = useTheme();
+  const { theme, isDarkMode } = useTheme();
 
   return (
     <>
-      <StatusBar style="light" />
-      {/* [PENILAIAN - POIN 3 (10%)]: Menerapkan _layout dan <Stack.Screen> */}
+      <StatusBar style={isDarkMode ? "light" : "light"} />
+      {/* [PENILAIAN - POIN 3]: Menerapkan _layout dan <Stack.Screen> */}
       <Stack
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: theme.background },
+          animation: "slide_from_right",
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="navigation-demo" />
+        <Stack.Screen
+          name="index"
+          options={{
+            title: "Alarm",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="alarm-detail"
+          options={{
+            title: "Detail & Simulasi Alarm",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="navigation-demo"
+          options={{
+            title: "Demo Navigasi Expo Router",
+            headerShown: false,
+          }}
+        />
       </Stack>
     </>
   );

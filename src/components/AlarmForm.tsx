@@ -1,13 +1,10 @@
-import { RINGTONES } from "@/data/alarmData";
-import { styles } from "@/styles/styles";
 /**
  * @file src/components/AlarmForm.tsx
- * Modal form input dan edit alarm.
+ * Modal form input dan edit alarm dengan dukungan tema adaptif.
  */
 
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { useTheme } from "@/context/ThemeContext";
 import {
   Modal,
   Platform,
@@ -18,13 +15,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-
-const SCHEDULE_OPTIONS = [
-  "Daily",
-  "Weekdays",
-  "Saturdays",
-  "Tomorrow",
-];
+import { useTheme } from "@/context/ThemeContext";
 import { RINGTONES, SCHEDULE_OPTIONS } from "@/data/alarmData";
 import { styles } from "@/styles/styles";
 
@@ -58,7 +49,6 @@ interface AlarmFormProps {
   setSnoozeTimes: (value: string) => void;
 }
 
-// Custom function komponen form alarm
 export default function AlarmForm({
   visible,
   ringtoneModalVisible,
@@ -86,13 +76,19 @@ export default function AlarmForm({
   setSnoozeTimes,
 }: AlarmFormProps) {
   const { theme, isDarkMode } = useTheme();
-  const inputTheme = {
+
+  const inputThemeStyle = {
     backgroundColor: theme.inputBackground,
     borderColor: theme.border,
     color: theme.text,
   };
-  const snoozeThumbColor =
-    isDarkMode && !snoozeEnabled ? "#9ca3af" : "#ffffff";
+
+  const snoozeThumbColor = snoozeEnabled
+    ? theme.primary
+    : isDarkMode
+      ? "#64748b"
+      : "#f1f5f9";
+
   const webSwitchProps =
     Platform.OS === "web"
       ? { activeThumbColor: snoozeThumbColor }
@@ -115,25 +111,19 @@ export default function AlarmForm({
             ]}
             keyboardShouldPersistTaps="handled"
           >
-            <Text
-              style={[
-                styles.modalTitle,
-                { color: theme.text },
-              ]}
-            >
+            <Text style={[styles.modalTitle, { color: theme.text }]}>
               {isEditing ? "Edit Alarm" : "Tambah Alarm"}
             </Text>
 
             <Text style={[styles.formLabel, { color: theme.secondaryText }]}>
               Nama Alarm
             </Text>
-
             <TextInput
               value={alarmName}
               onChangeText={setAlarmName}
               placeholder="Nama alarm"
-              placeholderTextColor="#a0aec0"
-              style={[styles.formInput, inputTheme]}
+              placeholderTextColor={theme.subtleText}
+              style={[styles.formInput, inputThemeStyle]}
               maxLength={50}
               accessibilityLabel="Nama Alarm"
             />
@@ -141,42 +131,20 @@ export default function AlarmForm({
             <Text style={[styles.formLabel, { color: theme.secondaryText }]}>
               Waktu (24 jam)
             </Text>
-
-             <Text style={styles.formLabel}>Ringtone</Text>
-            <Pressable
-              onPress={onRingtoneModalOpen}
-              style={styles.ringtoneSelector}
-              accessibilityRole="button"
-              accessibilityLabel={`Ringtone ${ringtone}`}
-            >
-              <Text style={styles.ringtoneValue}>{ringtone}</Text>
-              <Ionicons name="chevron-forward" size={18} color="#718096" />
-            </Pressable>
-
-            <Text style={styles.formLabel}>Waktu (24 jam)</Text>
             <View style={styles.timeInputRow}>
               <TextInput
                 value={hour}
                 onChangeText={setHour}
                 placeholder="07"
-                placeholderTextColor="#a0aec0"
-                style={[
-                  styles.formInput,
-                  styles.timeInput,
-                  inputTheme,
-                ]}
+                placeholderTextColor={theme.subtleText}
+                style={[styles.formInput, styles.timeInput, inputThemeStyle]}
                 keyboardType="number-pad"
                 maxLength={2}
                 selectTextOnFocus
                 accessibilityLabel="Jam"
               />
 
-              <Text
-                style={[
-                  styles.timeSeparator,
-                  { color: theme.secondaryText },
-                ]}
-              >
+              <Text style={[styles.timeSeparator, { color: theme.secondaryText }]}>
                 :
               </Text>
 
@@ -184,12 +152,8 @@ export default function AlarmForm({
                 value={minute}
                 onChangeText={setMinute}
                 placeholder="00"
-                placeholderTextColor="#a0aec0"
-                style={[
-                  styles.formInput,
-                  styles.timeInput,
-                  inputTheme,
-                ]}
+                placeholderTextColor={theme.subtleText}
+                style={[styles.formInput, styles.timeInput, inputThemeStyle]}
                 keyboardType="number-pad"
                 maxLength={2}
                 selectTextOnFocus
@@ -200,54 +164,22 @@ export default function AlarmForm({
             <Text style={[styles.formLabel, { color: theme.secondaryText }]}>
               Jadwal
             </Text>
-
-            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-              {SCHEDULE_OPTIONS.map((option) => (
-                <Pressable
-                  key={option}
-                  onPress={() => setSchedule(option)}
-                  style={[
-                    styles.scheduleOption,
-                    {
-                      backgroundColor:
-                        schedule === option
-                          ? theme.selectedBackground
-                          : theme.inputBackground,
-                      borderColor:
-                        schedule === option
-                          ? theme.selectedBorder
-                          : theme.border,
-                    },
-                  ]}
-                  accessibilityRole="radio"
-                  accessibilityState={{
-                    checked: schedule === option,
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.scheduleOptionText,
-                      {
-                        color:
-                          schedule === option
-                            ? theme.selectedText
-                            : theme.mutedText,
-            <Text style={styles.formLabel}>Jadwal</Text>
-            {/* Kontainer opsi jadwal dengan inline style */}
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-              {/* Loop pilihan jadwal dengan array map */}
+            <View style={styles.scheduleContainer}>
               {SCHEDULE_OPTIONS.map((option) => {
                 const isSelected = schedule === option;
                 return (
                   <Pressable
                     key={option}
                     onPress={() => setSchedule(option)}
-                    // Dynamic inline style dipadu dengan external stylesheet
                     style={[
                       styles.scheduleOption,
-                      !isSelected && {
-                        backgroundColor: "#f7f8fa",
-                        borderColor: "#e2e8f0",
+                      {
+                        backgroundColor: isSelected
+                          ? theme.selectedBackground
+                          : theme.inputBackground,
+                        borderColor: isSelected
+                          ? theme.selectedBorder
+                          : theme.border,
                       },
                     ]}
                     accessibilityRole="radio"
@@ -256,7 +188,11 @@ export default function AlarmForm({
                     <Text
                       style={[
                         styles.scheduleOptionText,
-                        !isSelected && { color: "#718096" },
+                        {
+                          color: isSelected
+                            ? theme.selectedText
+                            : theme.mutedText,
+                        },
                       ]}
                     >
                       {option}
@@ -269,7 +205,6 @@ export default function AlarmForm({
             <Text style={[styles.formLabel, { color: theme.secondaryText }]}>
               Ringtone
             </Text>
-
             <Pressable
               onPress={onRingtoneModalOpen}
               style={[
@@ -282,15 +217,9 @@ export default function AlarmForm({
               accessibilityRole="button"
               accessibilityLabel={`Ringtone ${ringtone}`}
             >
-              <Text
-                style={[
-                  styles.ringtoneValue,
-                  { color: theme.text },
-                ]}
-              >
+              <Text style={[styles.ringtoneValue, { color: theme.text }]}>
                 {ringtone}
               </Text>
-
               <Ionicons
                 name="chevron-forward"
                 size={18}
@@ -299,31 +228,15 @@ export default function AlarmForm({
             </Pressable>
 
             <View style={styles.snoozeHeader}>
-              <Text style={[styles.formLabel, { color: theme.secondaryText }]}>
+              <Text style={[styles.formLabel, { color: theme.secondaryText, marginBottom: 0 }]}>
                 Snooze
               </Text>
-
-              <Text style={styles.formLabel}>Nama Alarm</Text>
-            <TextInput
-              value={alarmName}
-              onChangeText={setAlarmName}
-              placeholder="Nama alarm"
-              placeholderTextColor="#a0aec0"
-              style={styles.formInput}
-              maxLength={50}
-              accessibilityLabel="Nama Alarm"
-            />
-
-          
-
-            <View style={styles.snoozeHeader}>
-              <Text style={styles.formLabel}>Snooze</Text>
               <Switch
                 value={snoozeEnabled}
                 onValueChange={setSnoozeEnabled}
                 trackColor={{
-                  false: isDarkMode ? "#4b5563" : "#cbd5e1",
-                  true: isDarkMode ? "#4b5563" : "#abb4bc",
+                  false: isDarkMode ? "#334155" : "#cbd5e1",
+                  true: isDarkMode ? "#7f1d1d" : "#fecaca",
                 }}
                 thumbColor={snoozeThumbColor}
                 {...webSwitchProps}
@@ -332,32 +245,20 @@ export default function AlarmForm({
             </View>
 
             {snoozeEnabled ? (
-              <>
+              <View style={{ marginTop: 12 }}>
                 <Text style={[styles.formLabel, { color: theme.secondaryText }]}>
                   Snooze Interval
                 </Text>
-
-                <Text style={styles.formLabel}>Snooze Interval</Text>
                 <View style={styles.snoozeInputRow}>
                   <TextInput
                     value={snoozeInterval}
                     onChangeText={setSnoozeInterval}
-                    style={[
-                      styles.formInput,
-                      styles.snoozeInput,
-                      inputTheme,
-                    ]}
+                    style={[styles.formInput, styles.snoozeInput, inputThemeStyle]}
                     keyboardType="number-pad"
                     maxLength={3}
                     accessibilityLabel="Snooze Interval"
                   />
-
-                  <Text
-                    style={[
-                      styles.snoozeUnit,
-                      { color: theme.mutedText },
-                    ]}
-                  >
+                  <Text style={[styles.snoozeUnit, { color: theme.mutedText }]}>
                     menit
                   </Text>
                 </View>
@@ -365,47 +266,24 @@ export default function AlarmForm({
                 <Text style={[styles.formLabel, { color: theme.secondaryText }]}>
                   Snooze Times
                 </Text>
-
-                  <Text style={styles.snoozeUnit}>menit</Text>
-                </View>
-
-                <Text style={styles.formLabel}>Snooze Times</Text>
                 <View style={styles.snoozeInputRow}>
                   <TextInput
                     value={snoozeTimes}
                     onChangeText={setSnoozeTimes}
-                    style={[
-                      styles.formInput,
-                      styles.snoozeInput,
-                      inputTheme,
-                    ]}
+                    style={[styles.formInput, styles.snoozeInput, inputThemeStyle]}
                     keyboardType="number-pad"
                     maxLength={3}
                     accessibilityLabel="Snooze Times"
                   />
-
-                  <Text
-                    style={[
-                      styles.snoozeUnit,
-                      { color: theme.mutedText },
-                    ]}
-                  >
+                  <Text style={[styles.snoozeUnit, { color: theme.mutedText }]}>
                     kali
                   </Text>
-                  <Text style={styles.snoozeUnit}>kali</Text>
                 </View>
-              </>
+              </View>
             ) : null}
 
             {formError ? (
-              <Text
-                style={[
-                  styles.formError,
-                  isDarkMode && { color: "#fca5a5" },
-                ]}
-              >
-                {formError}
-              </Text>
+              <Text style={styles.formError}>{formError}</Text>
             ) : null}
 
             <View style={styles.modalActions}>
@@ -454,44 +332,10 @@ export default function AlarmForm({
               { backgroundColor: theme.surface },
             ]}
           >
-            <Text
-              style={[
-                styles.modalTitle,
-                { color: theme.text },
-              ]}
-            >
-              Ringtone
+            <Text style={[styles.modalTitle, { color: theme.text }]}>
+              Pilih Ringtone
             </Text>
 
-            {RINGTONES.map((option) => (
-              <Pressable
-                key={option}
-                onPress={() => {
-                  setRingtone(option);
-                  onRingtoneModalClose();
-                }}
-                style={[
-                  styles.ringtoneOption,
-                  { borderBottomColor: theme.border },
-                ]}
-                accessibilityRole="radio"
-                accessibilityState={{
-                  checked: ringtone === option,
-                }}
-              >
-                <Text
-                  style={[
-                    styles.ringtoneOptionText,
-                    ringtone === option &&
-                      styles.ringtoneOptionTextSelected,
-                    {
-                      color:
-                        ringtone === option
-                          ? theme.selectedText
-                          : theme.secondaryText,
-                    },
-                  ]}
-            {/* Loop daftar ringtone dengan array map */}
             {RINGTONES.map((option) => {
               const isSelected = ringtone === option;
               return (
@@ -501,7 +345,10 @@ export default function AlarmForm({
                     setRingtone(option);
                     onRingtoneModalClose();
                   }}
-                  style={styles.ringtoneOption}
+                  style={[
+                    styles.ringtoneOption,
+                    { borderBottomColor: theme.border },
+                  ]}
                   accessibilityRole="radio"
                   accessibilityState={{ checked: isSelected }}
                 >
@@ -509,13 +356,18 @@ export default function AlarmForm({
                     style={[
                       styles.ringtoneOptionText,
                       isSelected && styles.ringtoneOptionTextSelected,
+                      {
+                        color: isSelected
+                          ? theme.selectedText
+                          : theme.secondaryText,
+                      },
                     ]}
                   >
                     {option}
                   </Text>
 
                   {isSelected ? (
-                    <Ionicons name="checkmark" size={20} color="#e53e3e" />
+                    <Ionicons name="checkmark" size={20} color={theme.primary} />
                   ) : null}
                 </Pressable>
               );
