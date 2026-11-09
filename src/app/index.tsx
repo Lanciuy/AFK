@@ -336,7 +336,7 @@ export default function AlarmScreen() {
                   <Text
                     style={[styles.briefingTitle, { color: theme.primary }]}
                   >
-                    Info Cuaca &amp; Kutipan Pagi (External API)
+                    Prakiraan Cuaca &amp; Motivasi Pagi
                   </Text>
                 </View>
 

@@ -23,6 +23,10 @@ import {
 import { useTheme } from "@/context/ThemeContext";
 import { RINGTONES, SCHEDULE_OPTIONS } from "@/data/alarmData";
 import { validateStepInputAsync } from "@/services/alarmAsyncService";
+import {
+  previewAlarmSoundAsync,
+  stopAlarmSoundAsync,
+} from "@/services/soundService";
 import { styles } from "@/styles/styles";
 
 interface AlarmFormProps {
@@ -96,6 +100,11 @@ export default function AlarmForm({
   // State untuk mengontrol tahap aktif wizard (Tahap 1, 2, atau 3)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
+  // State untuk mencatat nada dering yang sedang diputar pratinjaunya
+  const [previewingRingtone, setPreviewingRingtone] = useState<string | null>(
+    null
+  );
+
   const inputThemeStyle = {
     backgroundColor: theme.inputBackground,
     borderColor: theme.border,
@@ -113,8 +122,46 @@ export default function AlarmForm({
       ? { activeThumbColor: snoozeThumbColor }
       : {};
 
-  // Reset step ketika form ditutup
+  // Memutar pratinjau ringtone native selama 3 detik
+  const handlePreviewRingtone = (optionName: string) => {
+    setPreviewingRingtone(optionName);
+    previewAlarmSoundAsync(optionName, 3000)
+      .then(() => {
+        setTimeout(() => {
+          setPreviewingRingtone((curr) => (curr === optionName ? null : curr));
+        }, 3000);
+      })
+      .catch((err: Error) => {
+        console.warn("Gagal memutar pratinjau ringtone:", err.message);
+        setPreviewingRingtone(null);
+      });
+  };
+
+  // Memilih nada dering sekaligus memutar konfirmasi nada singkat
+  const handleSelectRingtone = (optionName: string) => {
+    setRingtone(optionName);
+    previewAlarmSoundAsync(optionName, 2000).catch((err: Error) => {
+      console.warn("Pratinjau ringtone error:", err.message);
+    });
+    setPreviewingRingtone(null);
+    onRingtoneModalClose();
+  };
+
+  // Menutup modal ringtone dan menghentikan audio pratinjau
+  const handleCloseRingtoneModal = () => {
+    stopAlarmSoundAsync().catch((err: Error) => {
+      console.warn("Gagal menghentikan audio saat modal ditutup:", err.message);
+    });
+    setPreviewingRingtone(null);
+    onRingtoneModalClose();
+  };
+
+  // Reset step dan matikan audio ketika form ditutup
   const handleModalClose = () => {
+    stopAlarmSoundAsync().catch((err: Error) => {
+      console.warn("Gagal menghentikan audio saat form ditutup:", err.message);
+    });
+    setPreviewingRingtone(null);
     setCurrentStep(1);
     setFormError("");
     onClose();
@@ -498,42 +545,78 @@ export default function AlarmForm({
                 >
                   Pilih Nada Dering
                 </Text>
-                <Pressable
-                  onPress={onRingtoneModalOpen}
-                  style={[
-                    styles.ringtoneSelector,
-                    {
-                      backgroundColor: theme.inputBackground,
-                      borderColor: theme.border,
-                    },
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Ringtone ${ringtone}`}
-                >
-                  <View
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Pressable
+                    onPress={onRingtoneModalOpen}
+                    style={[
+                      styles.ringtoneSelector,
+                      {
+                        flex: 1,
+                        backgroundColor: theme.inputBackground,
+                        borderColor: theme.border,
+                      },
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Ringtone ${ringtone}`}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <Ionicons
+                        name="musical-notes-outline"
+                        size={18}
+                        color={theme.primary}
+                      />
+                      <Text
+                        style={[styles.ringtoneValue, { color: theme.text }]}
+                      >
+                        {ringtone}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color={theme.mutedText}
+                    />
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => handlePreviewRingtone(ringtone)}
                     style={{
-                      flexDirection: "row",
+                      width: 48,
+                      height: 48,
+                      borderRadius: 12,
+                      backgroundColor: theme.inputBackground,
+                      borderWidth: 1,
+                      borderColor:
+                        previewingRingtone === ringtone
+                          ? theme.primary
+                          : theme.border,
                       alignItems: "center",
-                      gap: 8,
+                      justifyContent: "center",
                     }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Dengarkan Nada Dering Terpilih"
                   >
                     <Ionicons
-                      name="musical-notes-outline"
-                      size={18}
-                      color={theme.primary}
+                      name={
+                        previewingRingtone === ringtone
+                          ? "volume-high"
+                          : "volume-medium-outline"
+                      }
+                      size={22}
+                      color={
+                        previewingRingtone === ringtone
+                          ? theme.primary
+                          : theme.secondaryText
+                      }
                     />
-                    <Text
-                      style={[styles.ringtoneValue, { color: theme.text }]}
-                    >
-                      {ringtone}
-                    </Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={18}
-                    color={theme.mutedText}
-                  />
-                </Pressable>
+                  </Pressable>
+                </View>
               </View>
             ) : null}
 
@@ -740,7 +823,7 @@ export default function AlarmForm({
                       { color: theme.cancelText },
                     ]}
                   >
-                    ← Sebelumnya
+                    Sebelumnya
                   </Text>
                 </Pressable>
               ) : (
@@ -774,7 +857,7 @@ export default function AlarmForm({
                   accessibilityRole="button"
                 >
                   <Text style={[styles.saveButtonText, { color: "#ffffff" }]}>
-                    Lanjut →
+                    Lanjut
                   </Text>
                 </Pressable>
               ) : (
@@ -784,7 +867,7 @@ export default function AlarmForm({
                   accessibilityRole="button"
                 >
                   <Text style={styles.saveButtonText}>
-                    {isEditing ? "Perbarui Alarm" : "✓ Setel Alarm"}
+                    {isEditing ? "Perbarui Alarm" : "Setel Alarm"}
                   </Text>
                 </Pressable>
               )}
@@ -798,7 +881,7 @@ export default function AlarmForm({
         visible={ringtoneModalVisible}
         transparent
         animationType="fade"
-        onRequestClose={onRingtoneModalClose}
+        onRequestClose={handleCloseRingtoneModal}
       >
         <View style={styles.modalOverlay}>
           <View
@@ -807,28 +890,56 @@ export default function AlarmForm({
               { backgroundColor: theme.surface, maxHeight: "80%" },
             ]}
           >
-            <Text style={[styles.modalTitle, { color: theme.text }]}>
-              Pilih Ringtone
-            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 12,
+              }}
+            >
+              <Text style={[styles.modalTitle, { color: theme.text, marginBottom: 0 }]}>
+                Pilih Ringtone
+              </Text>
+              <Pressable
+                onPress={handleCloseRingtoneModal}
+                style={{ padding: 4 }}
+                accessibilityRole="button"
+                accessibilityLabel="Tutup Pilihan Ringtone"
+              >
+                <Ionicons name="close" size={22} color={theme.mutedText} />
+              </Pressable>
+            </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
               {RINGTONES.map((option) => {
                 const isSelected = ringtone === option;
+                const isPlayingThis = previewingRingtone === option;
                 return (
-                  <Pressable
+                  <View
                     key={option}
-                    onPress={() => {
-                      setRingtone(option);
-                      onRingtoneModalClose();
-                    }}
                     style={[
                       styles.ringtoneOption,
-                      { borderBottomColor: theme.border },
+                      {
+                        borderBottomColor: theme.border,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      },
                     ]}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: isSelected }}
                   >
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                    <Pressable
+                      onPress={() => handleSelectRingtone(option)}
+                      style={{
+                        flex: 1,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                        paddingVertical: 4,
+                      }}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: isSelected }}
+                    >
                       <Ionicons
                         name="musical-note-outline"
                         size={16}
@@ -847,16 +958,48 @@ export default function AlarmForm({
                       >
                         {option}
                       </Text>
-                    </View>
+                    </Pressable>
 
-                    {isSelected ? (
-                      <Ionicons
-                        name="checkmark"
-                        size={20}
-                        color={theme.primary}
-                      />
-                    ) : null}
-                  </Pressable>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      {/* Tombol Pratinjau Suara Ringtone */}
+                      <Pressable
+                        onPress={() => handlePreviewRingtone(option)}
+                        style={{
+                          padding: 6,
+                          borderRadius: 8,
+                          backgroundColor: isPlayingThis
+                            ? theme.selectedBackground
+                            : "transparent",
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Dengarkan pratinjau ${option}`}
+                      >
+                        <Ionicons
+                          name={
+                            isPlayingThis
+                              ? "volume-high"
+                              : "volume-medium-outline"
+                          }
+                          size={20}
+                          color={isPlayingThis ? theme.primary : theme.mutedText}
+                        />
+                      </Pressable>
+
+                      {isSelected ? (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={22}
+                          color={theme.primary}
+                        />
+                      ) : null}
+                    </View>
+                  </View>
                 );
               })}
             </ScrollView>

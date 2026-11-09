@@ -17,6 +17,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
 import { fetchExternalMorningBriefingAsync } from "@/services/alarmAsyncService";
+import {
+  playAlarmSoundAsync,
+  stopAlarmSoundAsync,
+} from "@/services/soundService";
 import type { MorningBriefing } from "@/types/alarm";
 
 export default function AlarmDetailScreen() {
@@ -50,11 +54,19 @@ export default function AlarmDetailScreen() {
   // State cuaca & kutipan pagi dari External API
   const [briefing, setBriefing] = useState<MorningBriefing | null>(null);
 
-  // [PENILAIAN - POIN 1]: Hook useEffect() untuk timer simulasi dengan cleanup function
+  // [PENILAIAN - POIN 1]: Hook useEffect() untuk timer simulasi dan pemutaran audio native dengan cleanup function
   useEffect(() => {
     if (!isSimulating) {
+      stopAlarmSoundAsync().catch((err: Error) => {
+        console.warn("Gagal menghentikan suara alarm:", err.message);
+      });
       return;
     }
+
+    // Memutar nada dering alarm secara native berulang (loop) saat simulasi aktif
+    playAlarmSoundAsync(alarmRingtone, true).catch((err: Error) => {
+      console.warn("Gagal memutar suara alarm:", err.message);
+    });
 
     const intervalId = setInterval(() => {
       setElapsedSeconds((prev) => prev + 1);
@@ -62,8 +74,12 @@ export default function AlarmDetailScreen() {
 
     return () => {
       clearInterval(intervalId);
+      // Menghentikan pemutaran audio saat simulasi berhenti atau layar di-unmount
+      stopAlarmSoundAsync().catch((err: Error) => {
+        console.warn("Gagal membersihkan pemutar audio saat unmount:", err.message);
+      });
     };
-  }, [isSimulating]);
+  }, [isSimulating, alarmRingtone]);
 
   // [PENILAIAN - POIN 2 & POIN 3]: Memuat data External API menggunakan .then()
   useEffect(() => {
@@ -81,6 +97,9 @@ export default function AlarmDetailScreen() {
       const next = !current;
       if (!next) {
         setElapsedSeconds(0);
+        stopAlarmSoundAsync().catch((err: Error) => {
+          console.warn("Gagal menghentikan audio saat stop:", err.message);
+        });
       }
       return next;
     });
@@ -330,7 +349,7 @@ export default function AlarmDetailScreen() {
             <Text
               style={[detailStyles.sectionTitle, { color: theme.text }]}
             >
-              Simulasi Dering Alarm (useEffect)
+              Simulasi Dering Alarm
             </Text>
           </View>
 
@@ -479,7 +498,7 @@ export default function AlarmDetailScreen() {
               color={theme.text}
             />
             <Text style={[detailStyles.navButtonText, { color: theme.text }]}>
-              Kembali ke Daftar (router.back)
+              Kembali ke Daftar
             </Text>
           </Pressable>
 
@@ -497,7 +516,7 @@ export default function AlarmDetailScreen() {
           >
             <Ionicons name="checkmark-done" size={18} color="#ffffff" />
             <Text style={[detailStyles.navButtonText, { color: "#ffffff" }]}>
-              Selesai &amp; Ke Beranda (router.replace)
+              Selesai &amp; Ke Beranda
             </Text>
           </Pressable>
         </View>
