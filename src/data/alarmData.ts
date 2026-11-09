@@ -12,7 +12,7 @@ export const INITIAL_ALARMS: AlarmItem[] = [
     time: "06:30",
     label: "Work",
     schedule: "Weekdays",
-    ringtone: "Default",
+    ringtone: "Morning Chime",
     snoozeEnabled: false,
     snoozeInterval: 5,
     snoozeTimes: 3,
@@ -23,7 +23,7 @@ export const INITIAL_ALARMS: AlarmItem[] = [
     time: "09:00",
     label: "Late Start",
     schedule: "Weekdays",
-    ringtone: "Default",
+    ringtone: "Sunrise Glow",
     snoozeEnabled: false,
     snoozeInterval: 5,
     snoozeTimes: 3,
@@ -34,7 +34,7 @@ export const INITIAL_ALARMS: AlarmItem[] = [
     time: "14:45",
     label: "Appointment",
     schedule: "Tomorrow",
-    ringtone: "Default",
+    ringtone: "Gentle Breeze",
     snoozeEnabled: false,
     snoozeInterval: 5,
     snoozeTimes: 3,
@@ -53,13 +53,25 @@ export const INITIAL_ALARMS: AlarmItem[] = [
   },
 ];
 
+/**
+ * Daftar nada dering pilihan untuk alarm.
+ * Menyediakan variasi nada klasik, elektronik, melodi tenang, dan suara alam.
+ */
 export const RINGTONES: readonly string[] = [
   "Default",
   "Alarm Classic",
-  "Digital",
-  "Morning",
-  "Gentle",
-  "Beep",
+  "Digital Beep",
+  "Morning Chime",
+  "Gentle Breeze",
+  "Radar Pulse",
+  "Cosmic Bell",
+  "Forest Birds",
+  "Zen Garden",
+  "Ocean Waves",
+  "Upbeat Melody",
+  "Sunrise Glow",
+  "Echo Drop",
+  "Neon Synth",
 ];
 
 export const SCHEDULE_OPTIONS: readonly ScheduleOption[] = [

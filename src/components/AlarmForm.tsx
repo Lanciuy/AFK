@@ -804,53 +804,62 @@ export default function AlarmForm({
           <View
             style={[
               styles.ringtoneModalContent,
-              { backgroundColor: theme.surface },
+              { backgroundColor: theme.surface, maxHeight: "80%" },
             ]}
           >
             <Text style={[styles.modalTitle, { color: theme.text }]}>
               Pilih Ringtone
             </Text>
 
-            {RINGTONES.map((option) => {
-              const isSelected = ringtone === option;
-              return (
-                <Pressable
-                  key={option}
-                  onPress={() => {
-                    setRingtone(option);
-                    onRingtoneModalClose();
-                  }}
-                  style={[
-                    styles.ringtoneOption,
-                    { borderBottomColor: theme.border },
-                  ]}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: isSelected }}
-                >
-                  <Text
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {RINGTONES.map((option) => {
+                const isSelected = ringtone === option;
+                return (
+                  <Pressable
+                    key={option}
+                    onPress={() => {
+                      setRingtone(option);
+                      onRingtoneModalClose();
+                    }}
                     style={[
-                      styles.ringtoneOptionText,
-                      isSelected && styles.ringtoneOptionTextSelected,
-                      {
-                        color: isSelected
-                          ? theme.selectedText
-                          : theme.secondaryText,
-                      },
+                      styles.ringtoneOption,
+                      { borderBottomColor: theme.border },
                     ]}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: isSelected }}
                   >
-                    {option}
-                  </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                      <Ionicons
+                        name="musical-note-outline"
+                        size={16}
+                        color={isSelected ? theme.primary : theme.mutedText}
+                      />
+                      <Text
+                        style={[
+                          styles.ringtoneOptionText,
+                          isSelected && styles.ringtoneOptionTextSelected,
+                          {
+                            color: isSelected
+                              ? theme.selectedText
+                              : theme.secondaryText,
+                          },
+                        ]}
+                      >
+                        {option}
+                      </Text>
+                    </View>
 
-                  {isSelected ? (
-                    <Ionicons
-                      name="checkmark"
-                      size={20}
-                      color={theme.primary}
-                    />
-                  ) : null}
-                </Pressable>
-              );
-            })}
+                    {isSelected ? (
+                      <Ionicons
+                        name="checkmark"
+                        size={20}
+                        color={theme.primary}
+                      />
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
           </View>
         </View>
       </Modal>
