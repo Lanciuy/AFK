@@ -49,7 +49,7 @@ export default function AlarmDetailScreen() {
     handleAnswerChange,
     submitChallengeAndStop,
   } = useAlarmSimulation(alarmRingtone);
-  const { briefing } = useMorningBriefing();
+  const { briefing, errorMessage, refreshBriefing } = useMorningBriefing();
 
   return (
     <SafeAreaView
@@ -173,44 +173,68 @@ export default function AlarmDetailScreen() {
           </View>
         </View>
 
-        {/* Kondisi cuaca dan motivasi pagi */}
-        {briefing ? (
+        {/* Kondisi cuaca saat alarm berbunyi beserta pesan error UI jika API gagal */}
+        <View
+          style={[
+            detailStyles.sectionCard,
+            {
+              backgroundColor: theme.card,
+              borderColor: errorMessage
+                ? "rgba(239, 68, 68, 0.45)"
+                : theme.border,
+            },
+          ]}
+        >
           <View
             style={[
-              detailStyles.sectionCard,
-              {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-              },
+              detailStyles.sectionHeader,
+              { justifyContent: "space-between" },
             ]}
           >
-            <View style={detailStyles.sectionHeader}>
-              <Ionicons
-                name="sunny-outline"
-                size={20}
-                color={theme.primary}
-              />
-              <Text
-                style={[detailStyles.sectionTitle, { color: theme.text }]}
-              >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Ionicons name="sunny-outline" size={20} color={theme.primary} />
+              <Text style={[detailStyles.sectionTitle, { color: theme.text }]}>
                 Kondisi Cuaca Saat Alarm Berbunyi
               </Text>
             </View>
 
-            <View style={detailStyles.weatherRow}>
+            <Pressable
+              onPress={refreshBriefing}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Muat ulang cuaca"
+            >
+              <Ionicons name="refresh" size={16} color={theme.secondaryText} />
+            </Pressable>
+          </View>
+
+          {errorMessage ? (
+            <View
+              style={[
+                detailStyles.weatherErrorBox,
+                {
+                  backgroundColor: "rgba(239, 68, 68, 0.12)",
+                  borderColor: "rgba(239, 68, 68, 0.35)",
+                },
+              ]}
+            >
+              <Ionicons name="cloud-offline-outline" size={18} color="#ef4444" />
               <Text
-                style={[detailStyles.weatherTemp, { color: theme.text }]}
+                style={[detailStyles.weatherErrorText, { color: "#ef4444" }]}
               >
+                {errorMessage}
+              </Text>
+            </View>
+          ) : briefing ? (
+            <View style={detailStyles.weatherRow}>
+              <Text style={[detailStyles.weatherTemp, { color: theme.text }]}>
                 {briefing.temperature}°C
               </Text>
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text
-                  style={[
-                    detailStyles.weatherCondition,
-                    { color: theme.text },
-                  ]}
+                  style={[detailStyles.weatherCondition, { color: theme.text }]}
                 >
-                  {briefing.weatherLabel}
+                  {briefing.weatherLabel} • Angin {briefing.windSpeed} km/j
                 </Text>
                 <Text
                   style={[
@@ -222,29 +246,8 @@ export default function AlarmDetailScreen() {
                 </Text>
               </View>
             </View>
-
-            <View
-              style={[
-                detailStyles.quoteBox,
-                {
-                  backgroundColor: theme.inputBackground,
-                  borderLeftColor: theme.primary,
-                },
-              ]}
-            >
-              <Text
-                style={[detailStyles.quoteText, { color: theme.text }]}
-              >
-                &ldquo;{briefing.quote}&rdquo;
-              </Text>
-              <Text
-                style={[detailStyles.quoteAuthor, { color: theme.primary }]}
-              >
-                — {briefing.quoteAuthor}
-              </Text>
-            </View>
-          </View>
-        ) : null}
+          ) : null}
+        </View>
 
         {/* Panel simulasi uji bunyi dering alarm */}
         <View

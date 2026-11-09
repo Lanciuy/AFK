@@ -26,14 +26,16 @@ export function useAlarmSimulation(ringtoneName: string) {
   // Mengatur pemutaran audio dan hitungan detik saat simulasi aktif
   useEffect(() => {
     if (!isSimulating) {
-      stopAlarmSoundAsync().catch((err: Error) => {
-        console.warn("Gagal menghentikan audio simulasi:", err.message);
+      stopAlarmSoundAsync().catch(() => {
+        // Pembersihan player saat simulasi dihentikan
       });
       return;
     }
 
     playAlarmSoundAsync(ringtoneName, true).catch((err: Error) => {
-      console.warn("Gagal memutar audio dering simulasi:", err.message);
+      setChallengeError(
+        err.message || "Gagal memutar audio dering simulasi di perangkat."
+      );
     });
 
     const intervalId = setInterval(() => {
@@ -42,8 +44,8 @@ export function useAlarmSimulation(ringtoneName: string) {
 
     return () => {
       clearInterval(intervalId);
-      stopAlarmSoundAsync().catch((err: Error) => {
-        console.warn("Cleanup audio unmount error:", err.message);
+      stopAlarmSoundAsync().catch(() => {
+        // Pembersihan player saat layar ditutup
       });
     };
   }, [isSimulating, ringtoneName]);
@@ -85,8 +87,8 @@ export function useAlarmSimulation(ringtoneName: string) {
     setUserAnswer("");
     setElapsedSeconds(0);
     setIsSimulating(false);
-    stopAlarmSoundAsync().catch((err: Error) => {
-      console.warn("Gagal mematikan audio dering:", err.message);
+    stopAlarmSoundAsync().catch(() => {
+      // Menghentikan pemutar audio dering setelah jawaban benar
     });
   };
 

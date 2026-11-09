@@ -1,4 +1,4 @@
-// Komponen kartu cuaca dan kutipan motivasi pagi dari External API
+// Komponen kartu prakiraan cuaca pagi beserta penanganan pesan error di layar
 
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -10,12 +10,14 @@ import type { MorningBriefing } from "@/types/alarm";
 interface MorningBriefingCardProps {
   briefing: MorningBriefing | null;
   isLoading: boolean;
+  errorMessage: string | null;
   onRefresh: () => void;
 }
 
 export default function MorningBriefingCard({
   briefing,
   isLoading,
+  errorMessage,
   onRefresh,
 }: MorningBriefingCardProps) {
   const { theme } = useTheme();
@@ -26,7 +28,7 @@ export default function MorningBriefingCard({
         homeStyles.briefingCard,
         {
           backgroundColor: theme.card,
-          borderColor: theme.border,
+          borderColor: errorMessage ? "rgba(239, 68, 68, 0.45)" : theme.border,
         },
       ]}
     >
@@ -39,7 +41,7 @@ export default function MorningBriefingCard({
             color={theme.primary}
           />
           <Text style={[homeStyles.briefingTitle, { color: theme.primary }]}>
-            Prakiraan Cuaca &amp; Motivasi Pagi
+            Prakiraan Cuaca Pagi
           </Text>
         </View>
 
@@ -51,7 +53,7 @@ export default function MorningBriefingCard({
           ]}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Muat ulang data cuaca dan kutipan"
+          accessibilityLabel="Muat ulang data cuaca"
         >
           {isLoading ? (
             <ActivityIndicator size="small" color={theme.primary} />
@@ -61,68 +63,56 @@ export default function MorningBriefingCard({
         </Pressable>
       </View>
 
-      {/* Isi data suhu, kondisi angin, lokasi, dan kutipan motivasi */}
-      {briefing ? (
-        <>
-          <View style={homeStyles.briefingMainRow}>
-            <View>
-              <View style={homeStyles.briefingTempGroup}>
-                <Text style={[homeStyles.briefingTemp, { color: theme.text }]}>
-                  {briefing.temperature}°C
-                </Text>
-              </View>
-              <Text
-                style={[
-                  homeStyles.briefingCondition,
-                  { color: theme.secondaryText },
-                ]}
-              >
-                {briefing.weatherLabel} • Angin {briefing.windSpeed} km/j
+      {/* Pesan error di dalam aplikasi apabila API cuaca gagal dimuat */}
+      {errorMessage ? (
+        <View
+          style={[
+            homeStyles.briefingErrorBox,
+            {
+              backgroundColor: "rgba(239, 68, 68, 0.12)",
+              borderColor: "rgba(239, 68, 68, 0.35)",
+            },
+          ]}
+        >
+          <Ionicons name="cloud-offline-outline" size={18} color="#ef4444" />
+          <Text style={[homeStyles.briefingErrorText, { color: "#ef4444" }]}>
+            {errorMessage}
+          </Text>
+        </View>
+      ) : briefing ? (
+        <View style={homeStyles.briefingMainRow}>
+          <View>
+            <View style={homeStyles.briefingTempGroup}>
+              <Text style={[homeStyles.briefingTemp, { color: theme.text }]}>
+                {briefing.temperature}°C
               </Text>
             </View>
-
-            <View style={homeStyles.briefingMetaRight}>
-              <Text
-                style={[homeStyles.briefingLocation, { color: theme.text }]}
-              >
-                {briefing.locationName}
-              </Text>
-              <Text
-                style={[
-                  homeStyles.briefingUpdated,
-                  { color: theme.mutedText },
-                ]}
-              >
-                Update: {briefing.lastUpdated}
-              </Text>
-            </View>
+            <Text
+              style={[
+                homeStyles.briefingCondition,
+                { color: theme.secondaryText },
+              ]}
+            >
+              {briefing.weatherLabel} • Angin {briefing.windSpeed} km/j
+            </Text>
           </View>
 
-          {/* Kotak kutipan motivasi harian */}
-          <View
-            style={[
-              homeStyles.briefingQuoteBox,
-              {
-                backgroundColor: theme.inputBackground,
-                borderLeftColor: theme.primary,
-              },
-            ]}
-          >
+          <View style={homeStyles.briefingMetaRight}>
             <Text
-              style={[homeStyles.briefingQuoteText, { color: theme.text }]}
+              style={[homeStyles.briefingLocation, { color: theme.text }]}
             >
-              &ldquo;{briefing.quote}&rdquo;
+              {briefing.locationName}
             </Text>
             <Text
               style={[
-                homeStyles.briefingQuoteAuthor,
-                { color: theme.primary },
+                homeStyles.briefingUpdated,
+                { color: theme.mutedText },
               ]}
             >
-              — {briefing.quoteAuthor}
+              Update: {briefing.lastUpdated}
             </Text>
           </View>
-        </>
+        </View>
       ) : (
         <ActivityIndicator size="small" color={theme.primary} />
       )}

@@ -135,22 +135,19 @@ export const detailStyles = StyleSheet.create({
   weatherLocation: {
     fontSize: 12,
   },
-  quoteBox: {
+  weatherErrorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     padding: 10,
-    borderRadius: 10,
-    borderLeftWidth: 3,
-    marginTop: 4,
+    borderRadius: 12,
+    borderWidth: 1,
   },
-  quoteText: {
+  weatherErrorText: {
+    flex: 1,
     fontSize: 12,
-    fontStyle: "italic",
-    lineHeight: 18,
-  },
-  quoteAuthor: {
-    fontSize: 11,
-    fontWeight: "700",
-    marginTop: 4,
-    textAlign: "right",
+    fontWeight: "600",
+    lineHeight: 17,
   },
   timerBox: {
     alignItems: "center",

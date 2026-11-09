@@ -92,7 +92,7 @@ export default function AlarmForm({
         }, 3000);
       })
       .catch((err: Error) => {
-        console.warn("Gagal memutar pratinjau ringtone:", err.message);
+        setFormError(err.message || "Gagal memutar pratinjau nada dering.");
         setPreviewingRingtone(null);
       });
   };
@@ -101,7 +101,7 @@ export default function AlarmForm({
   const handleSelectRingtone = (optionName: string) => {
     setRingtone(optionName);
     previewAlarmSoundAsync(optionName, 2000).catch((err: Error) => {
-      console.warn("Pratinjau ringtone error:", err.message);
+      setFormError(err.message || "Gagal memutar pratinjau nada dering.");
     });
     setPreviewingRingtone(null);
     onRingtoneModalClose();
@@ -109,8 +109,8 @@ export default function AlarmForm({
 
   // Tutup modal pemilihan nada dering dan hentikan audio pratinjau
   const handleCloseRingtoneModal = () => {
-    stopAlarmSoundAsync().catch((err: Error) => {
-      console.warn("Gagal menghentikan audio ringtone modal:", err.message);
+    stopAlarmSoundAsync().catch(() => {
+      // Hentikan audio pratinjau saat modal ditutup
     });
     setPreviewingRingtone(null);
     onRingtoneModalClose();
@@ -118,8 +118,8 @@ export default function AlarmForm({
 
   // Tutup form utama, hentikan suara, dan kembalikan stepper ke langkah pertama
   const handleModalClose = () => {
-    stopAlarmSoundAsync().catch((err: Error) => {
-      console.warn("Gagal menghentikan audio saat form ditutup:", err.message);
+    stopAlarmSoundAsync().catch(() => {
+      // Hentikan audio pratinjau saat form ditutup
     });
     setPreviewingRingtone(null);
     setCurrentStep(1);

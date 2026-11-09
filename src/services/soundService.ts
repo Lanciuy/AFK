@@ -18,8 +18,8 @@ export async function stopAlarmSoundAsync(): Promise<void> {
     try {
       activePlayer.pause();
       activePlayer.remove();
-    } catch (error) {
-      console.warn("Gagal membersihkan AudioPlayer:", error);
+    } catch {
+      // Abaikan kegagalan pelepasan player yang sudah dihentikan oleh sistem
     } finally {
       activePlayer = null;
     }
@@ -51,8 +51,10 @@ export async function playAlarmSoundAsync(
 
     activePlayer = player;
     player.play();
-  } catch (error) {
-    console.error(`Gagal memutar audio ringtone '${ringtoneName}':`, error);
+  } catch {
+    return Promise.reject(
+      new Error(`Gagal memuat audio nada dering "${ringtoneName}".`)
+    );
   }
 }
 
@@ -65,13 +67,8 @@ export async function previewAlarmSoundAsync(
   await playAlarmSoundAsync(ringtoneName, false);
 
   previewTimeoutId = setTimeout(() => {
-    stopAlarmSoundAsync().catch((err) => {
-      console.warn("Gagal menghentikan pratinjau audio:", err);
+    stopAlarmSoundAsync().catch(() => {
+      // Pembersihan otomatis setelah durasi pratinjau selesai
     });
   }, durationMs);
-}
-
-// Cek status apakah pemutar audio sedang aktif berbunyi
-export function isAlarmPlaying(): boolean {
-  return activePlayer !== null && activePlayer.playing;
 }

@@ -2,10 +2,7 @@
 
 // Format tanggal ke string waktu jam:menit:detik (HH:MM:SS)
 export function formatTimeHMS(date: Date): string {
-  const h = String(date.getHours()).padStart(2, "0");
-  const m = String(date.getMinutes()).padStart(2, "0");
-  const s = String(date.getSeconds()).padStart(2, "0");
-  return `${h}:${m}:${s}`;
+  return date.toTimeString().slice(0, 8);
 }
 
 // Format detik ke string durasi menit:detik (MM:SS)
@@ -19,17 +16,14 @@ export function formatElapsedMMSS(totalSeconds: number): string {
 export function calculateRemainingTime(targetTime: string): string {
   const [targetHour = 7, targetMin = 0] = targetTime.split(":").map(Number);
   const now = new Date();
-  const currentHour = now.getHours();
-  const currentMin = now.getMinutes();
+  let diffMinutes =
+    targetHour * 60 + targetMin - (now.getHours() * 60 + now.getMinutes());
 
-  let diffMinutes = targetHour * 60 + targetMin - (currentHour * 60 + currentMin);
   if (diffMinutes <= 0) {
     diffMinutes += 24 * 60;
   }
 
-  const hours = Math.floor(diffMinutes / 60);
-  const minutes = diffMinutes % 60;
-  return `${hours} jam ${minutes} menit lagi`;
+  return `${Math.floor(diffMinutes / 60)} jam ${diffMinutes % 60} menit lagi`;
 }
 
 // Konversi kode cuaca WMO ke label Bahasa Indonesia
@@ -44,4 +38,3 @@ export function mapWeatherCodeToLabel(code: number): string {
   if (code >= 95 && code <= 99) return "Badai Petir";
   return "Berawan";
 }
-

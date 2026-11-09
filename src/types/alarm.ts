@@ -49,20 +49,11 @@ export interface ExternalWeatherApiResponse {
   };
 }
 
-// Skema respons DummyJSON Quotes API
-export interface ExternalQuoteApiResponse {
-  id: number;
-  quote: string;
-  author: string;
-}
-
-// Model gabungan cuaca pagi dan kutipan motivasi
+// Model data prakiraan cuaca pagi
 export interface MorningBriefing {
   readonly temperature: number;
   readonly windSpeed: number;
   readonly weatherLabel: string;
-  readonly quote: string;
-  readonly quoteAuthor: string;
   readonly locationName: string;
   readonly lastUpdated: string;
 }

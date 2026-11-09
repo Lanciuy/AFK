@@ -79,7 +79,7 @@ export const homeStyles = StyleSheet.create({
     paddingBottom: 100,
   },
 
-  // Kartu cuaca dan kutipan pagi
+  // Kartu prakiraan cuaca pagi
   briefingCard: {
     borderRadius: 18,
     borderWidth: 1,
@@ -119,7 +119,6 @@ export const homeStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
   },
   briefingTempGroup: {
     flexDirection: "row",
@@ -146,21 +145,20 @@ export const homeStyles = StyleSheet.create({
     fontSize: 11,
     marginTop: 2,
   },
-  briefingQuoteBox: {
-    borderRadius: 12,
+  briefingErrorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     padding: 10,
-    borderLeftWidth: 3,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 2,
   },
-  briefingQuoteText: {
+  briefingErrorText: {
+    flex: 1,
     fontSize: 12,
-    fontStyle: "italic",
-    lineHeight: 18,
-  },
-  briefingQuoteAuthor: {
-    fontSize: 11,
-    fontWeight: "700",
-    marginTop: 4,
-    textAlign: "right",
+    fontWeight: "600",
+    lineHeight: 17,
   },
 
   // Kartu item alarm

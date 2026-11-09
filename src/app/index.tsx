@@ -21,7 +21,8 @@ export default function AlarmScreen() {
 
   // Inisialisasi hook jam digital, cuaca pagi API, dan manajemen data alarm
   const currentTime = useLiveClock();
-  const { briefing, isLoading, refreshBriefing } = useMorningBriefing();
+  const { briefing, isLoading, errorMessage, refreshBriefing } =
+    useMorningBriefing();
   const {
     alarms,
     editingAlarm,
@@ -101,6 +102,7 @@ export default function AlarmScreen() {
             <MorningBriefingCard
               briefing={briefing}
               isLoading={isLoading}
+              errorMessage={errorMessage}
               onRefresh={refreshBriefing}
             />
           }
